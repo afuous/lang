@@ -1,0 +1,3 @@
+input x;
+x = x + 4;
+output x;
