@@ -27,7 +27,7 @@ parseExpression xs = let rev = reverse xs
                          right = take pos rev
                          left = drop (pos + 1) rev
                          (TokenOperator char) = rev !! pos
-                     in  Operator char (parseExpression left) (parseExpression right)
+                     in Operator char (parseExpression left) (parseExpression right)
   where
     walk [] _ = error "invalid expression"
     walk _ n | n < 0 = error "mismatched parentheses"

@@ -21,14 +21,6 @@ wordTokens = Map.fromList [ ("output", TokenOutput)
 operatorTokens :: [Char]
 operatorTokens = ['+', '-', '*', '/', '^']
 
---operatorTokens :: Map.Map Char (Integer -> Integer -> Integer)
---operatorTokens = Map.fromList [ ('+', (+)
---                              , ('-', (-))
---                              , ('*', (*))
---                              , ('/', div)
---                              , ('^', (^))
---                              ]
-
 getWordToken :: String -> Maybe String
 getWordToken xs = find startsWith (Map.keys wordTokens)
   where

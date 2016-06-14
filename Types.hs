@@ -1,6 +1,8 @@
 module Types where
 
--- types for parsing
+import qualified Data.Map as Map
+
+-- types for lexing
 
 data Token = TokenLeftParen
            | TokenRightParen
@@ -15,11 +17,11 @@ data Token = TokenLeftParen
            deriving (Show, Eq)
 
 
--- types for execution
+-- types for parsing
 
 type Block = [Instruction]
 
-newtype Identifier = Identifier { unIdentifier :: String } deriving (Show, Eq)
+newtype Identifier = Identifier { unIdentifier :: String } deriving (Show, Eq, Ord)
 
 newtype Value = Value { unValue :: Integer } deriving (Show, Eq)
 
@@ -32,4 +34,16 @@ data Expression = Constant Value
                 | Variable Identifier
                 | Operator Char Expression Expression
                 deriving Show
+
+
+-- types for execution
+
+type Variables = Map.Map Identifier Value
+
+--data Action = Action { runAction :: Variables -> (Variables, IO ()) }
+--
+--instance Monad Action where
+--    return a = Action $ \v -> (v, a)
+--    m >>= f = Action $ \v -> let (a, v') = runAction m v
+--                             in runAction (f a) v'
 
