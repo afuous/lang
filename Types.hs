@@ -8,25 +8,28 @@ data Token = TokenLeftParen
            | TokenSemicolon
            | TokenOutput
            | TokenInput
-           | TokenIf
+--           | TokenIf
            | TokenOperator Char
            | TokenLiteral Value
-           | TokenIdentifier Identifier deriving Show
+           | TokenIdentifier Identifier 
+           deriving (Show, Eq)
 
 
 -- types for execution
 
 type Block = [Instruction]
 
-newtype Identifier = Identifier { unIdentifier :: String } deriving Show
+newtype Identifier = Identifier { unIdentifier :: String } deriving (Show, Eq)
 
-newtype Value = Value { unValue :: Integer } deriving Show
+newtype Value = Value { unValue :: Integer } deriving (Show, Eq)
 
 data Instruction = Assignment Identifier Expression
                  | Output Expression
                  | Input Identifier
+                 deriving Show
 
 data Expression = Constant Value
                 | Variable Identifier
-                | Operator (Value -> Value) Expression Expression
+                | Operator Char Expression Expression
+                deriving Show
 

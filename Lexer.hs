@@ -15,7 +15,7 @@ charTokens = Map.fromList [ ('(', TokenLeftParen)
 wordTokens :: Map.Map String Token
 wordTokens = Map.fromList [ ("output", TokenOutput)
                           , ("input", TokenInput)
-                          , ("if", TokenIf)
+--                          , ("if", TokenIf)
                           ]
 
 operatorTokens :: [Char]
