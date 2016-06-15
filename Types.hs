@@ -1,5 +1,6 @@
 module Types where
 
+import           Control.Monad.State
 import qualified Data.Map as Map
 
 -- types for lexing
@@ -40,10 +41,4 @@ data Expression = Constant Value
 
 type Variables = Map.Map Identifier Value
 
---data Action = Action { runAction :: Variables -> (Variables, IO ()) }
---
---instance Monad Action where
---    return a = Action $ \v -> (v, a)
---    m >>= f = Action $ \v -> let (a, v') = runAction m v
---                             in runAction (f a) v'
-
+type Action = StateT Variables IO ()
