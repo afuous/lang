@@ -5,19 +5,19 @@ import           Data.List (elemIndex)
 import           Types
 
 parseBlock :: [Token] -> Block
-parseBlock = map parseInstruction . splitInstructions
+parseBlock = map parseInstr . splitInstrs
 
 --subBlocks :: [Token] -> [[Token]]
-splitInstructions :: [Token] -> [[Token]]
-splitInstructions tokens = case TokenSemicolon `elemIndex` tokens of
+splitInstrs :: [Token] -> [[Token]]
+splitInstrs tokens = case TSemicolon `elemIndex` tokens of
     Nothing -> []
-    Just n -> take n tokens : splitInstructions (drop (n + 1) tokens)
+    Just n -> take n tokens : splitInstrs (drop (n + 1) tokens)
 
-parseInstruction :: [Token] -> Instruction
-parseInstruction (TokenOutput:xs) = Output (parseExpression xs)
-parseInstruction [TokenInput, (TokenIdentifier ident)] = Input ident
-parseInstruction ((TokenIdentifier ident):TokenEquals:xs) = Assignment ident (parseExpression xs)
-parseInstruction _ = error "syntax error"
+parseInstr :: [Token] -> Instr
+parseInstr (TOutput:xs) = Output (parseExpr xs)
+parseInstr [TInput, (TIdent ident)] = Input ident
+parseInstr ((TIdent ident):TEquals:xs) = Assignment ident (parseExpr xs)
+parseInstr _ = error "syntax error"
 
 operators :: [[Char]]
 operators = [ ['+', '-']
@@ -25,20 +25,20 @@ operators = [ ['+', '-']
             , ['/']
             ]
 
-parseExpression :: [Token] -> Expression
-parseExpression [] = error "empty expression"
-parseExpression [TokenLiteral value] = Constant value
-parseExpression [TokenIdentifier ident] = Variable ident
-parseExpression xs =
+parseExpr :: [Token] -> Expr
+parseExpr [] = error "empty expression"
+parseExpr [TLiteral value] = Constant value
+parseExpr [TIdent ident] = Variable ident
+parseExpr xs =
     let rev = reverse xs
     in case findOperator rev of
-        Nothing -> if head xs == TokenLeftParen && last xs == TokenRightParen
-            then parseExpression $ init $ tail xs
+        Nothing -> if head xs == TLeftParen && last xs == TRightParen
+            then parseExpr $ init $ tail xs
             else error "invalid expression"
         Just pos -> let right = reverse $ take pos rev
                         left = reverse $ drop (pos + 1) rev
-                        (TokenOperator char) = rev !! pos
-                    in Operator char (parseExpression left) (parseExpression right)
+                        (TOperator char) = rev !! pos
+                    in Operator char (parseExpr left) (parseExpr right)
   where
 
     findOperator :: [Token] -> Maybe Int
@@ -47,7 +47,7 @@ parseExpression xs =
     walk :: [Token] -> Int -> [Char] -> Maybe Int
     walk [] _ _ = Nothing
     walk _ n _ | n < 0 = error "mismatched parentheses"
-    walk (TokenRightParen:xs) n ops = fmap (+1) $ walk xs (n + 1) ops
-    walk (TokenLeftParen:xs) n ops = fmap (+1) $ walk xs (n - 1) ops
-    walk ((TokenOperator op):xs) 0 ops | op `elem` ops = Just 0
+    walk (TRightParen:xs) n ops = fmap (+1) $ walk xs (n + 1) ops
+    walk (TLeftParen:xs) n ops = fmap (+1) $ walk xs (n - 1) ops
+    walk ((TOperator op):xs) 0 ops | op `elem` ops = Just 0
     walk (x:xs) n ops = fmap (+1) $ walk xs n ops

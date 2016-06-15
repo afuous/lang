@@ -6,16 +6,16 @@ import qualified Data.Map as Map
 import           Types
 
 charTokens :: Map.Map Char Token
-charTokens = Map.fromList [ ('(', TokenLeftParen)
-                          , (')', TokenRightParen)
-                          , ('=', TokenEquals)
-                          , (';', TokenSemicolon)
+charTokens = Map.fromList [ ('(', TLeftParen)
+                          , (')', TRightParen)
+                          , ('=', TEquals)
+                          , (';', TSemicolon)
                           ]
 
 wordTokens :: Map.Map String Token
-wordTokens = Map.fromList [ ("output", TokenOutput)
-                          , ("input", TokenInput)
---                          , ("if", TokenIf)
+wordTokens = Map.fromList [ ("output", TOutput)
+                          , ("input", TInput)
+--                          , ("if", TIf)
                           ]
 
 operatorTokens :: [Char]
@@ -36,10 +36,10 @@ getLiteral (x:xs)
                       Just str -> x:str
     | otherwise = Nothing
 
-getIdentifier :: String -> String
-getIdentifier [] = []
-getIdentifier (x:xs)
-    | isLetter x = x : getIdentifier xs
+getIdent :: String -> String
+getIdent [] = []
+getIdent (x:xs)
+    | isLetter x = x : getIdent xs
     | otherwise = []
 
 lexer :: String -> [Token]
@@ -47,7 +47,7 @@ lexer [] = []
 lexer xs@(x:xt)
     | isSpace x = lexer xt
     | Just token <- Map.lookup x charTokens = token : lexer xt
-    | x `elem` operatorTokens = TokenOperator x : lexer xt
+    | x `elem` operatorTokens = TOperator x : lexer xt
     | Just str <- getWordToken xs = wordTokens Map.! str : lexer (drop (length str) xs)
-    | Just str <- getLiteral xs = TokenLiteral (Value $ read str) : lexer (drop (length str) xs)
-    | otherwise = let str = getIdentifier xs in TokenIdentifier (Identifier str) : lexer (drop (length str) xs)
+    | Just str <- getLiteral xs = TLiteral (Value $ read str) : lexer (drop (length str) xs)
+    | otherwise = let str = getIdent xs in TIdent (Ident str) : lexer (drop (length str) xs)

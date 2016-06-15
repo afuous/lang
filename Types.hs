@@ -5,40 +5,40 @@ import qualified Data.Map as Map
 
 -- types for lexing
 
-data Token = TokenLeftParen
-           | TokenRightParen
-           | TokenEquals
-           | TokenSemicolon
-           | TokenOutput
-           | TokenInput
---           | TokenIf
-           | TokenOperator Char
-           | TokenLiteral Value
-           | TokenIdentifier Identifier 
+data Token = TLeftParen
+           | TRightParen
+           | TEquals
+           | TSemicolon
+           | TOutput
+           | TInput
+--           | TIf
+           | TOperator Char
+           | TLiteral Value
+           | TIdent Ident 
            deriving (Show, Eq)
 
 
 -- types for parsing
 
-type Block = [Instruction]
+type Block = [Instr]
 
-newtype Identifier = Identifier { unIdentifier :: String } deriving (Show, Eq, Ord)
+newtype Ident = Ident { unIdent :: String } deriving (Show, Eq, Ord)
 
 newtype Value = Value { unValue :: Integer } deriving (Show, Eq)
 
-data Instruction = Assignment Identifier Expression
-                 | Output Expression
-                 | Input Identifier
-                 deriving Show
+data Instr = Assignment Ident Expr
+             | Output Expr
+             | Input Ident
+             deriving Show
 
-data Expression = Constant Value
-                | Variable Identifier
-                | Operator Char Expression Expression
-                deriving Show
+data Expr = Constant Value
+          | Variable Ident
+          | Operator Char Expr Expr
+          deriving Show
 
 
 -- types for execution
 
-type Variables = Map.Map Identifier Value
+type Vars = Map.Map Ident Value
 
-type Action = StateT Variables IO ()
+type Action = StateT Vars IO ()

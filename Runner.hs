@@ -10,22 +10,22 @@ run m = evalStateT m Map.empty
 runBlock :: Block -> Action
 runBlock [] = return ()
 runBlock (x:xs) = do
-    runInstruction x
+    runInstr x
     runBlock xs
 
-setVariable :: Identifier -> Value -> Action
-setVariable ident val = modify $ Map.insert ident val
+setVar :: Ident -> Value -> Action
+setVar ident val = modify $ Map.insert ident val
 
-runInstruction :: Instruction -> Action
-runInstruction (Output expr) = do
+runInstr :: Instr -> Action
+runInstr (Output expr) = do
     vars <- get
-    liftIO $ print $ unValue $ evaluateExpression vars expr
-runInstruction (Input ident) = do
+    liftIO $ print $ unValue $ evalExpr vars expr
+runInstr (Input ident) = do
     input <- liftIO readLn
-    setVariable ident (Value input)
-runInstruction (Assignment ident expr) = do
+    setVar ident (Value input)
+runInstr (Assignment ident expr) = do
     vars <- get
-    setVariable ident $ evaluateExpression vars expr
+    setVar ident $ evalExpr vars expr
 
 operators :: Map.Map Char (Integer -> Integer -> Integer)
 operators = Map.fromList [ ('+', (+))
@@ -35,14 +35,14 @@ operators = Map.fromList [ ('+', (+))
                          , ('^', (^))
                          ]
 
-evaluateExpression :: Variables -> Expression -> Value
-evaluateExpression _ (Constant val) = val
-evaluateExpression vars (Variable var) =
+evalExpr :: Vars -> Expr -> Value
+evalExpr _ (Constant val) = val
+evalExpr vars (Variable var) =
     case Map.lookup var vars of
-        Nothing -> error $ "variable " ++ unIdentifier var ++ " not found"
+        Nothing -> error $ "variable " ++ unIdent var ++ " not found"
         Just val -> val
-evaluateExpression vars (Operator char left right) =
+evalExpr vars (Operator char left right) =
     let func = operators Map.! char
-        Value lValue = evaluateExpression vars left
-        Value rValue = evaluateExpression vars right
+        Value lValue = evalExpr vars left
+        Value rValue = evalExpr vars right
     in Value (func lValue rValue)
