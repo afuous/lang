@@ -1,5 +1,6 @@
 module Parser (parseBlock) where
 
+import           Control.Monad (msum)
 import           Data.List (elemIndex)
 import           Types
 
@@ -9,7 +10,7 @@ parseBlock = map parseInstruction . splitInstructions
 --subBlocks :: [Token] -> [[Token]]
 splitInstructions :: [Token] -> [[Token]]
 splitInstructions tokens = case TokenSemicolon `elemIndex` tokens of
-    Nothing -> [] -- change to [] for requiring trailing semicolon
+    Nothing -> []
     Just n -> take n tokens : splitInstructions (drop (n + 1) tokens)
 
 parseInstruction :: [Token] -> Instruction
@@ -18,13 +19,19 @@ parseInstruction [TokenInput, (TokenIdentifier ident)] = Input ident
 parseInstruction ((TokenIdentifier ident):TokenEquals:xs) = Assignment ident (parseExpression xs)
 parseInstruction _ = error "syntax error"
 
+operators :: [[Char]]
+operators = [ ['+', '-']
+            , ['*', '/']
+            , ['/']
+            ]
+
 parseExpression :: [Token] -> Expression
 parseExpression [] = error "empty expression"
 parseExpression [TokenLiteral value] = Constant value
 parseExpression [TokenIdentifier ident] = Variable ident
 parseExpression xs =
     let rev = reverse xs
-    in case walk rev 0 of
+    in case findOperator rev of
         Nothing -> if head xs == TokenLeftParen && last xs == TokenRightParen
             then parseExpression $ init $ tail xs
             else error "invalid expression"
@@ -33,9 +40,14 @@ parseExpression xs =
                         (TokenOperator char) = rev !! pos
                     in Operator char (parseExpression left) (parseExpression right)
   where
-    walk [] _ = Nothing
-    walk _ n | n < 0 = error "mismatched parentheses"
-    walk (TokenRightParen:xs) n = fmap (+1) $ walk xs (n + 1)
-    walk (TokenLeftParen:xs) n = fmap (+1) $ walk xs (n - 1)
-    walk ((TokenOperator _):xs) 0 = Just 0
-    walk (x:xs) n = fmap (+1) $ walk xs n
+
+    findOperator :: [Token] -> Maybe Int
+    findOperator rev = msum $ map (walk rev 0) operators
+
+    walk :: [Token] -> Int -> [Char] -> Maybe Int
+    walk [] _ _ = Nothing
+    walk _ n _ | n < 0 = error "mismatched parentheses"
+    walk (TokenRightParen:xs) n ops = fmap (+1) $ walk xs (n + 1) ops
+    walk (TokenLeftParen:xs) n ops = fmap (+1) $ walk xs (n - 1) ops
+    walk ((TokenOperator op):xs) 0 ops | op `elem` ops = Just 0
+    walk (x:xs) n ops = fmap (+1) $ walk xs n ops

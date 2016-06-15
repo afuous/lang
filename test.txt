@@ -3,3 +3,7 @@ input y;
 input z;
 x = x + 4;
 output (x + y) * z;
+
+output 1*2+3;
+output 1*(2+3);
+
