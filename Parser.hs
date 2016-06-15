@@ -1,4 +1,4 @@
-module Parser (parseBlock, splitInstructions) where
+module Parser (parseBlock) where
 
 import           Data.List (elemIndex)
 import           Types
@@ -22,16 +22,20 @@ parseExpression :: [Token] -> Expression
 parseExpression [] = error "empty expression"
 parseExpression [TokenLiteral value] = Constant value
 parseExpression [TokenIdentifier ident] = Variable ident
-parseExpression xs = let rev = reverse xs
-                         pos = walk (reverse xs) 0
-                         right = take pos rev
-                         left = drop (pos + 1) rev
-                         (TokenOperator char) = rev !! pos
-                     in Operator char (parseExpression left) (parseExpression right)
+parseExpression xs =
+    let rev = reverse xs
+    in case walk rev 0 of
+        Nothing -> if head xs == TokenLeftParen && last xs == TokenRightParen
+            then parseExpression $ init $ tail xs
+            else error "invalid expression"
+        Just pos -> let right = reverse $ take pos rev
+                        left = reverse $ drop (pos + 1) rev
+                        (TokenOperator char) = rev !! pos
+                    in Operator char (parseExpression left) (parseExpression right)
   where
-    walk [] _ = error "invalid expression"
+    walk [] _ = Nothing
     walk _ n | n < 0 = error "mismatched parentheses"
-    walk (TokenRightParen:xs) n = 1 + walk xs (n + 1)
-    walk (TokenLeftParen:xs) n = 1 + walk xs (n - 1)
-    walk ((TokenOperator _):xs) 0 = 0
-    walk (x:xs) n = 1 + walk xs n
+    walk (TokenRightParen:xs) n = fmap (+1) $ walk xs (n + 1)
+    walk (TokenLeftParen:xs) n = fmap (+1) $ walk xs (n - 1)
+    walk ((TokenOperator _):xs) 0 = Just 0
+    walk (x:xs) n = fmap (+1) $ walk xs n

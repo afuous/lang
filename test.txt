@@ -1,3 +1,5 @@
 input x;
+input y;
+input z;
 x = x + 4;
-output x;
+output (x + y) * z;

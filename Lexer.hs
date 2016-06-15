@@ -29,6 +29,7 @@ getWordToken xs = find startsWith (Map.keys wordTokens)
                                           && isSpace (xs !! len)
 
 getLiteral :: String -> Maybe String
+getLiteral [] = Nothing
 getLiteral (x:xs)
     | isDigit x = Just $ case getLiteral xs of
                       Nothing -> [x]
