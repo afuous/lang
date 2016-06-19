@@ -22,7 +22,7 @@ parseInstr _ = error "syntax error"
 
 operators :: [[Char]]
 operators = [ ['+', '-']
-            , ['*', '/']
+            , ['*', '/', '%']
             , ['/']
             ]
 

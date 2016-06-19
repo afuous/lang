@@ -22,7 +22,7 @@ wordTokens = Map.fromList [ ("output", TOutput)
                           ]
 
 operatorChars :: [Char]
-operatorChars = ['+', '-', '*', '/', '^']
+operatorChars = ['+', '-', '*', '/', '%', '^']
 
 getWordToken :: String -> Maybe String
 getWordToken xs = find startsWith (Map.keys wordTokens)
