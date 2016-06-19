@@ -7,11 +7,12 @@ import           Types
 parseBlock :: [Token] -> Block
 parseBlock = map parseInstr . splitInstrs
 
---subBlocks :: [Token] -> [[Token]]
 splitInstrs :: [Token] -> [[Token]]
 splitInstrs tokens = case TSemicolon `elemIndex` tokens of
     Nothing -> []
     Just n -> take n tokens : splitInstrs (drop (n + 1) tokens)
+
+getInstr
 
 parseInstr :: [Token] -> Instr
 parseInstr (TOutput:xs) = Output (parseExpr xs)

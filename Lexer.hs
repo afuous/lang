@@ -8,6 +8,8 @@ import           Types
 charTokens :: Map.Map Char Token
 charTokens = Map.fromList [ ('(', TLeftParen)
                           , (')', TRightParen)
+                          , ('{', TLeftCurl)
+                          , ('}', TRightCurl)
                           , ('=', TEquals)
                           , (';', TSemicolon)
                           ]
@@ -15,11 +17,12 @@ charTokens = Map.fromList [ ('(', TLeftParen)
 wordTokens :: Map.Map String Token
 wordTokens = Map.fromList [ ("output", TOutput)
                           , ("input", TInput)
---                          , ("if", TIf)
+                          , ("if", TIf)
+                          , ("white", TWhile)
                           ]
 
-operatorTokens :: [Char]
-operatorTokens = ['+', '-', '*', '/', '^']
+operatorChars :: [Char]
+operatorChars = ['+', '-', '*', '/', '^']
 
 getWordToken :: String -> Maybe String
 getWordToken xs = find startsWith (Map.keys wordTokens)
@@ -47,7 +50,7 @@ lexer [] = []
 lexer xs@(x:xt)
     | isSpace x = lexer xt
     | Just token <- Map.lookup x charTokens = token : lexer xt
-    | x `elem` operatorTokens = TOperator x : lexer xt
+    | x `elem` operatorChars = TOperator x : lexer xt
     | Just str <- getWordToken xs = wordTokens Map.! str : lexer (drop (length str) xs)
     | Just str <- getLiteral xs = TLiteral (Value $ read str) : lexer (drop (length str) xs)
     | otherwise = let str = getIdent xs in TIdent (Ident str) : lexer (drop (length str) xs)

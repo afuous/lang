@@ -7,11 +7,14 @@ import qualified Data.Map as Map
 
 data Token = TLeftParen
            | TRightParen
+           | TLeftCurl
+           | TRightCurl
            | TEquals
            | TSemicolon
            | TOutput
            | TInput
---           | TIf
+           | TIf
+           | TWhile
            | TOperator Char
            | TLiteral Value
            | TIdent Ident 
@@ -27,9 +30,11 @@ newtype Ident = Ident { unIdent :: String } deriving (Show, Eq, Ord)
 newtype Value = Value { unValue :: Integer } deriving (Show, Eq)
 
 data Instr = Assignment Ident Expr
-             | Output Expr
-             | Input Ident
-             deriving Show
+           | Output Expr
+           | Input Ident
+           | IfBlock Expr Block
+           | WhileBlock Expr Block
+           deriving Show
 
 data Expr = Constant Value
           | Variable Ident
