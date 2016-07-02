@@ -18,6 +18,8 @@ parseInstr :: [Token] -> Instr
 parseInstr (TOutput:xs) = Output (parseExpr xs)
 parseInstr [TInput, (TIdent ident)] = Input ident
 parseInstr ((TIdent ident):TEquals:xs) = Assignment ident (parseExpr xs)
+parseInstr (TWhile:xs) =
+parseInstr (TIf:xs) =
 parseInstr _ = error "syntax error"
 
 operators :: [[Char]]
