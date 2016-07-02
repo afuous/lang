@@ -20,7 +20,7 @@ getVar :: Ident -> Action Value
 getVar var = do
     vars <- get
     case Map.lookup var vars of
-        Nothing -> fail "variable " ++ unIdent var ++ " not found"
+        Nothing -> fail $ "variable " ++ unIdent var ++ " not found"
         Just val -> return val
 
 checkBool :: Value -> Bool

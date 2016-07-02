@@ -2,25 +2,41 @@ module Parser (parseBlock) where
 
 import           Control.Monad (msum)
 import           Data.List (elemIndex)
+import           Data.Maybe (fromJust)
 import           Types
 
 parseBlock :: [Token] -> Block
-parseBlock = map parseInstr . splitInstrs
+parseBlock [] = []
+parseBlock (TOutput:xs) =
+    let count = findToken TSemicolon xs
+    in (Output $ parseExpr $ take count xs) : parseBlock (drop (count + 1) xs)
+parseBlock (TInput:(TIdent ident):xs) =
+    (Input ident) : parseBlock (drop 1 xs)
+parseBlock ((TIdent ident):TEquals:xs) =
+    let count = findToken TSemicolon xs
+    in (Assignment ident $ parseExpr $ take count xs) : parseBlock (drop (count + 1) xs)
+parseBlock (TIf:xs) =
+    let count1 = findToken TLeftCurl xs
+        count2 = findMatchingCurl $ drop (count1 + 1) xs
+    in (IfBlock (parseExpr $ take count1 xs) (parseBlock $ take count2 $ drop (count1 + 1) xs)) : parseBlock (drop (count1 + count2 + 2) xs)
+parseBlock (TWhile:xs) =
+    let count1 = findToken TLeftCurl xs
+        count2 = findMatchingCurl $ drop (count1 + 1) xs
+    in (WhileBlock (parseExpr $ take count1 xs) (parseBlock $ take count2 $ drop (count1 + 1) xs)) : parseBlock (drop (count1 + count2 + 2) xs)
+parseBlock _ = error "syntax error"
 
-splitInstrs :: [Token] -> [[Token]]
-splitInstrs tokens = case TSemicolon `elemIndex` tokens of
-    Nothing -> []
-    Just n -> take n tokens : splitInstrs (drop (n + 1) tokens)
+findToken :: Token -> [Token] -> Int
+findToken token tokens = fromJust $ token `elemIndex` tokens
 
-getInstr
-
-parseInstr :: [Token] -> Instr
-parseInstr (TOutput:xs) = Output (parseExpr xs)
-parseInstr [TInput, (TIdent ident)] = Input ident
-parseInstr ((TIdent ident):TEquals:xs) = Assignment ident (parseExpr xs)
-parseInstr (TWhile:xs) =
-parseInstr (TIf:xs) =
-parseInstr _ = error "syntax error"
+findMatchingCurl :: [Token] -> Int
+findMatchingCurl xs = walk xs 1
+  where
+    walk :: [Token] -> Int -> Int
+    walk [] _ = error "mismatched brackets"
+    walk (TLeftCurl:xs) n = 1 + walk xs (n + 1)
+    walk (TRightCurl:_) 1 = 0 -- exclusive of last }
+    walk (TRightCurl:xs) n = 1 + walk xs (n - 1)
+    walk (_:xs) n = 1 + walk xs n
 
 operators :: [[Char]]
 operators = [ ['+', '-']

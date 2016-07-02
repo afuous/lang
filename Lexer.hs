@@ -18,7 +18,7 @@ wordTokens :: Map.Map String Token
 wordTokens = Map.fromList [ ("output", TOutput)
                           , ("input", TInput)
                           , ("if", TIf)
-                          , ("white", TWhile)
+                          , ("while", TWhile)
                           ]
 
 operatorChars :: [Char]
