@@ -1,10 +1,19 @@
-a = 3;
-if 1 {
-	a = a + 1;
+input total
+tocheck = 2
+count = 0
+while total - count {
+	n = 2
+	cont = 1
+	while cont {
+		if 0 ^ (tocheck - n) {
+			cont = 0
+			count = count + 1
+		}
+		if (tocheck - n) * 0 ^ (tocheck % n) {
+			cont = 0
+		}
+		n = n + 1
+	}
+	tocheck = tocheck + 1
 }
-output a;
-
-if 1 {
-	b = 4;
-}
-output b;
+output tocheck - 1

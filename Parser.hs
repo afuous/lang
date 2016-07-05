@@ -18,10 +18,11 @@ block = many $   try inputInstr
              <|> whileInstr
 
 whitespace :: Parser ()
-whitespace = void $ many $ oneOf "\n\t "
+whitespace = void $ many $ oneOf "n\t "
 
+-- TODO: clean up whitespace that allows newlines and whitespace that does not
 lexeme :: Parser a -> Parser a
-lexeme p = p <* whitespace
+lexeme p = p <* void (many (oneOf "\t "))
 
 literal :: Parser Value
 literal = lexeme $ Value <$> read <$> many1 digit
@@ -35,18 +36,20 @@ reservedWord s = void $ lexeme $ string s
 reservedSymbol :: Char -> Parser ()
 reservedSymbol c = void $ lexeme $ char c
 
+linebreak = reservedSymbol '\n'
+
 inputInstr :: Parser Instr
 inputInstr = do
     reservedWord "input"
     ident <- identifier
-    reservedSymbol ';'
+    linebreak
     return $ Input ident
 
 outputInstr :: Parser Instr
 outputInstr = do
     reservedWord "output"
     expr <- expression
-    reservedSymbol ';'
+    linebreak
     return $ Output expr
 
 assignmentInstr :: Parser Instr
@@ -54,7 +57,7 @@ assignmentInstr = do
     ident <- identifier
     reservedSymbol '='
     expr <- expression
-    reservedSymbol ';'
+    linebreak
     return $ Assignment ident expr
 
 ifInstr :: Parser Instr
@@ -62,8 +65,10 @@ ifInstr = do
     reservedWord "if"
     cond <- expression
     reservedSymbol '{'
+    linebreak
     instrs <- block
     reservedSymbol '}'
+    linebreak
     return $ IfBlock cond instrs
 
 whileInstr :: Parser Instr
@@ -71,8 +76,10 @@ whileInstr = do
     reservedWord "while"
     cond <- expression
     reservedSymbol '{'
+    linebreak
     instrs <- block
     reservedSymbol '}'
+    linebreak
     return $ WhileBlock cond instrs
 
 op = reservedSymbol
