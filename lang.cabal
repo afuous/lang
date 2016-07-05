@@ -1,0 +1,12 @@
+name:                lang
+version:             0.1.0.0
+synopsis:            A useless programming language
+homepage:            https://github.com/afuous/lang
+author:              Ben Heller
+maintainer:          benheller42@gmail.com
+build-type:          Simple
+cabal-version:       >=1.8
+
+executable lang
+  main-is:             Main.hs
+  build-depends:       base ==4.8.*, mtl ==2.2.*, containers ==0.5.*, transformers ==0.4.*
