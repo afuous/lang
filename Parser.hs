@@ -7,9 +7,13 @@ import           Text.Parsec.String (Parser)
 import           Types
 
 parseCode :: String -> Block
-parseCode s = case parse (many $ inputInstr <|> outputInstr) "mistake" s of
+parseCode s = case parse block "syntax error" s of
     Right instrs -> instrs
     Left err     -> error $ show err
+
+block :: Parser Block
+block = many $   inputInstr
+             <|> outputInstr
 
 whitespace :: Parser ()
 whitespace = void $ many $ oneOf "\n\t "
