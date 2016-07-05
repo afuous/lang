@@ -14,6 +14,7 @@ parseCode s = case parse block "syntax error" s of
 block :: Parser Block
 block = many $   inputInstr
              <|> outputInstr
+             <|> assignmentInstr
 
 whitespace :: Parser ()
 whitespace = void $ many $ oneOf "\n\t "
@@ -27,14 +28,11 @@ literal = lexeme $ Value <$> read <$> many1 digit
 identifier :: Parser Ident
 identifier = lexeme $ Ident <$> many1 letter
 
-input :: Parser ()
+input, output, semicolon, equals :: Parser ()
 input = void $ lexeme $ string "input"
-
-output :: Parser ()
 output = void $ lexeme $ string "output"
-
-semicolon :: Parser ()
 semicolon = void $ lexeme $ char ';'
+equals = void $ lexeme $ char '='
 
 inputInstr :: Parser Instr
 inputInstr = do
@@ -49,6 +47,14 @@ outputInstr = do
     expr <- expression
     semicolon
     return $ Output expr
+
+assignmentInstr :: Parser Instr
+assignmentInstr = do
+    ident <- identifier
+    equals
+    expr <- expression
+    semicolon
+    return $ Assignment ident expr
 
 parens :: Parser a -> Parser a
 parens p = void (lexeme $ char '(') *> p <* void (lexeme $ char ')')

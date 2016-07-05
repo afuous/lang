@@ -1,4 +1,4 @@
 input x;
 input y;
-input z;
+z = x+1;
 output z+x*y+z;
