@@ -13,7 +13,5 @@ main = do
 
 runCode :: String -> IO ()
 runCode code = case parseCode code of
-    Right block -> do
-        print block
-        run $ runBlock block
+    Right block -> run $ runBlock block
     Left err    -> fail $ show err

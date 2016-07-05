@@ -3,6 +3,7 @@ module Parser (parseCode) where
 import           Control.Monad (void)
 import           Text.Parsec
 import           Text.Parsec.Char
+import           Text.Parsec.Expr
 import           Text.Parsec.String (Parser)
 import           Types
 
@@ -26,67 +27,51 @@ literal = lexeme $ Value <$> read <$> many1 digit
 identifier :: Parser Ident
 identifier = lexeme $ Ident <$> many1 letter
 
-input, output, semicolon, equals :: Parser ()
-input = void $ lexeme $ string "input"
-output = void $ lexeme $ string "output"
-semicolon = void $ lexeme $ char ';'
-equals = void $ lexeme $ char '='
+reservedWord :: String -> Parser ()
+reservedWord s = void $ lexeme $ string s
+
+reservedSymbol :: Char -> Parser ()
+reservedSymbol c = void $ lexeme $ char c
 
 inputInstr :: Parser Instr
 inputInstr = do
-    input
+    reservedWord "input"
     ident <- identifier
-    semicolon
+    reservedSymbol ';'
     return $ Input ident
 
 outputInstr :: Parser Instr
 outputInstr = do
-    output
+    reservedWord "output"
     expr <- expression
-    semicolon
+    reservedSymbol ';'
     return $ Output expr
 
 assignmentInstr :: Parser Instr
 assignmentInstr = do
     ident <- identifier
-    equals
+    reservedSymbol '='
     expr <- expression
-    semicolon
+    reservedSymbol ';'
     return $ Assignment ident expr
 
-parens :: Parser a -> Parser a
-parens p = void (lexeme $ char '(') *> p <* void (lexeme $ char ')')
+op = reservedSymbol
 
-operators = [ ['+', '-']
-            , ['*', '/', '%']
-            , ['^'] -- TODO: this is right associative
+operators = [ [ Infix (op '^' >> return (Operator '^')) AssocRight ]
+            , [ Infix (op '*' >> return (Operator '*')) AssocLeft
+              , Infix (op '/' >> return (Operator '/')) AssocLeft
+              , Infix (op '%' >> return (Operator '%')) AssocLeft ]
+            , [ Infix (op '+' >> return (Operator '+')) AssocLeft
+              , Infix (op '-' >> return (Operator '-')) AssocLeft ]
             ]
 
---operatorsWith :: [[Char]] -> Parser Expr
---operatorsWith [] = term
---operatorsWith (x:xs) = try (do
---    a <- operatorsWith xs
---    chr <- oneOf x
---    b <- expression
---    return $ Operator chr a b) <|> operatorsWith xs
---
---operator = operatorsWith operators
+expression :: Parser Expr
+expression = buildExpressionParser operators term
 
-operator :: Parser Expr
-operator = do
-    a <- term
-    chr <- choice $ map (try . oneOf) operators
-    b <- expression
-    return $ Operator chr a b
+parens :: Parser a -> Parser a
+parens p = reservedSymbol '(' *> p <* reservedSymbol ')'
 
 term :: Parser Expr
-term = term' term
-  where
-    term' :: Parser Expr -> Parser Expr
-    term' expr =   Constant <$> literal
-               <|> Variable <$> identifier
-               <|> parens expression
-
-expression :: Parser Expr
-expression =   try operator
-           <|> term
+term =   parens expression
+     <|> Variable <$> identifier
+     <|> Constant <$> literal
