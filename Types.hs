@@ -3,23 +3,6 @@ module Types where
 import           Control.Monad.State
 import qualified Data.Map as Map
 
--- types for lexing
-
-data Token = TLeftParen
-           | TRightParen
-           | TLeftCurl
-           | TRightCurl
-           | TEquals
-           | TSemicolon
-           | TOutput
-           | TInput
-           | TIf
-           | TWhile
-           | TOperator Char
-           | TLiteral Value
-           | TIdent Ident 
-           deriving (Show, Eq)
-
 
 -- types for parsing
 
