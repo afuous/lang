@@ -6,10 +6,8 @@ import           Text.Parsec.Char
 import           Text.Parsec.String (Parser)
 import           Types
 
-parseCode :: String -> Block
-parseCode s = case parse block "syntax error" s of
-    Right instrs -> instrs
-    Left err     -> error $ show err
+parseCode :: String -> Either ParseError Block
+parseCode code = parse (block <* eof) "syntax error" code
 
 block :: Parser Block
 block = many $   inputInstr

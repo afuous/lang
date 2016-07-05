@@ -12,4 +12,6 @@ main = do
     runCode src
 
 runCode :: String -> IO ()
-runCode = run . runBlock . parseCode
+runCode code = case parseCode code of
+    Right block -> run $ runBlock block
+    Left err    -> fail $ show err
