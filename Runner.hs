@@ -1,26 +1,45 @@
 module Runner (run, runBlock) where
 
+import           Control.Monad
 import           Control.Monad.State
 import qualified Data.Map as Map
 import           Types
 
 run :: Action () -> IO ()
-run m = evalStateT m Map.empty
+run m = evalStateT m []
 
 runBlock :: Block -> Action ()
-runBlock [] = return ()
-runBlock (x:xs) = do
-    runInstr x
-    runBlock xs
+runBlock b = do
+    modify (Map.empty:)
+    runBlock' b
+    modify tail
+  where
+    runBlock' [] = return ()
+    runBlock' (x:xs) = do
+        runInstr x
+        runBlock' xs
 
 setVar :: Ident -> Value -> Action ()
-setVar ident val = modify $ Map.insert ident val
+setVar ident val = do
+    vars <- get
+    case set' vars of
+        Just m -> put m
+        Nothing -> put $ (Map.insert ident val (head vars)) : tail vars
+  where
+    set' :: Vars -> Maybe Vars
+    set' [] = Nothing
+    set' (x:xs) = if ident `Map.member` x
+        then Just $ (Map.insert ident val x) : xs
+        else fmap (x:) (set' xs)
 
 getVar :: Ident -> Action Value
 getVar var = do
     vars <- get
-    case Map.lookup var vars of
-        Nothing -> fail $ "variable " ++ unIdent var ++ " not found"
+    get' vars
+  where
+    get' [] = fail $ "variable " ++ unIdent var ++ " not found"
+    get' (x:xs) = case Map.lookup var x of
+        Nothing -> get' xs
         Just val -> return val
 
 checkBool :: Value -> Bool

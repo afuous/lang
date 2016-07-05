@@ -1,13 +1,10 @@
-input x;
-input y;
-z = x+1;
-output z+x*y+z;
-output 2*3+1;
-output 1+2*3;
-output (1+2)*3;
-
-input a;
-while a {
-	output a;
-	input a;
+a = 3;
+if 1 {
+	a = a + 1;
 }
+output a;
+
+if 1 {
+	b = 4;
+}
+output b;

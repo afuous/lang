@@ -11,10 +11,10 @@ parseCode :: String -> Either ParseError Block
 parseCode code = parse (block <* eof) "syntax error" code
 
 block :: Parser Block
-block = many $   inputInstr
+block = many $   try inputInstr
              <|> outputInstr
              <|> try assignmentInstr
-             <|> ifInstr
+             <|> try ifInstr
              <|> whileInstr
 
 whitespace :: Parser ()

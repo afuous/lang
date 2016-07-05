@@ -44,7 +44,7 @@ data Expr = Constant Value
 
 -- types for execution
 
-type Vars = Map.Map Ident Value
+type Vars = [Map.Map Ident Value]
 
 type Action a = StateT Vars IO a
 
