@@ -1,5 +1,4 @@
 input x;
-while x {
-	output x;
-	input x;
-}
+input y;
+z = x + y;
+output z;
