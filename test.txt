@@ -2,3 +2,9 @@ input x;
 input y;
 z = x + y;
 output z;
+
+input a;
+while a {
+	output a;
+	input a;
+}

@@ -1,5 +1,6 @@
 module Parser (parseBlock) where
 
+import System.IO.Unsafe
 import           Control.Monad (msum)
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
@@ -79,7 +80,37 @@ parseExpr xs =
     walk (TRightParen:xs) n ops = fmap (+1) $ walk xs (n + 1) ops
     walk (TLeftParen:xs) n ops = fmap (+1) $ walk xs (n - 1) ops
     walk ((TOperator op):xs) 0 ops | op `elem` ops = Just 0
-    walk (x:xs) n ops = fmap (+1) $ walk xs n ops
+    walk (_:xs) n ops = fmap (+1) $ walk xs n ops
+
+getBlockSize :: [Token] -> Int
+getBlockSize = walk 1
+  where
+    walk _ [] = error "this is not good error handling"
+    walk n (TLeftCurl:xs) = 1 + walk (n + 1) xs
+    walk 1 (TRightCurl:_) = 0
+    walk n (TRightCurl:xs) = 1 + walk (n - 1) xs
+    walk n (_:xs) = 1 + walk n xs
+
+expectBlock :: Parser Block
+expectBlock = do
+    tokens <- get
+    let size = getBlockSize tokens
+    modify $ drop (size + 1)
+    return $ parseBlock $ take size tokens
+
+parseIfBlock :: Parser Instr
+parseIfBlock = do
+    expectToken TIf
+    cond <- expectExprUntil TLeftCurl
+    block <- expectBlock
+    return $ IfBlock cond block
+
+parseWhileBlock :: Parser Instr
+parseWhileBlock = do
+    expectToken TWhile
+    cond <- expectExprUntil TLeftCurl
+    block <- expectBlock
+    return $ WhileBlock cond block
 
 parseInput :: Parser Instr
 parseInput = do
@@ -102,7 +133,7 @@ parseAssignment = do
     return $ Assignment ident expr
 
 instrParsers :: [Parser Instr]
-instrParsers = [parseInput, parseOutput, parseAssignment]
+instrParsers = [parseInput, parseOutput, parseAssignment, parseIfBlock, parseWhileBlock]
 
 runParser :: [Token] -> Parser a -> (Maybe a, [Token])
 runParser tokens parser = runState (runMaybeT parser) tokens
