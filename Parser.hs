@@ -14,7 +14,7 @@ block :: Parser Block
 block = many $   try inputInstr
              <|> outputInstr
              <|> try assignmentInstr
-             <|> try ifInstr
+             <|> try ifElseInstr
              <|> whileInstr
 
 whitespace :: Parser ()
@@ -36,7 +36,7 @@ reservedWord s = void $ lexeme $ string s
 reservedSymbol :: Char -> Parser ()
 reservedSymbol c = void $ lexeme $ char c
 
-linebreak = reservedSymbol '\n'
+linebreak = many $ oneOf "\n\t "
 
 inputInstr :: Parser Instr
 inputInstr = do
@@ -60,16 +60,23 @@ assignmentInstr = do
     linebreak
     return $ Assignment ident expr
 
-ifInstr :: Parser Instr
-ifInstr = do
+ifElseInstr :: Parser Instr
+ifElseInstr = do
     reservedWord "if"
     cond <- expression
     reservedSymbol '{'
     linebreak
-    instrs <- block
+    whenTrue <- block
     reservedSymbol '}'
+    whenFalse <- optionMaybe $ try $ do
+        reservedWord "else"
+        reservedSymbol '{'
+        linebreak
+        b <- block
+        reservedSymbol '}'
+        return b
     linebreak
-    return $ IfBlock cond instrs
+    return $ IfElseBlock cond whenTrue whenFalse
 
 whileInstr :: Parser Instr
 whileInstr = do

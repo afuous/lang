@@ -15,7 +15,7 @@ newtype Value = Value { unValue :: Integer } deriving (Show, Eq)
 data Instr = Assignment Ident Expr
            | Output Expr
            | Input Ident
-           | IfBlock Expr Block
+           | IfElseBlock Expr Block (Maybe Block)
            | WhileBlock Expr Block
            deriving Show
 

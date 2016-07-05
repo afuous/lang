@@ -8,12 +8,14 @@ while total - count {
 		if 0 ^ (tocheck - n) {
 			cont = 0
 			count = count + 1
-		}
-		if (tocheck - n) * 0 ^ (tocheck % n) {
-			cont = 0
+		} else {
+			if 0 ^ (tocheck % n) {
+				cont = 0
+			}
 		}
 		n = n + 1
 	}
 	tocheck = tocheck + 1
 }
 output tocheck - 1
+

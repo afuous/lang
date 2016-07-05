@@ -55,11 +55,13 @@ runInstr (Input ident) = do
 runInstr (Assignment ident expr) = do
     value <- evalExpr expr
     setVar ident value
-runInstr (IfBlock cond block) = do
+runInstr (IfElseBlock cond whenTrue whenFalse) = do
     bool <- evalExpr cond
     if checkBool bool
-        then runBlock block
-        else return ()
+        then runBlock whenTrue
+        else case whenFalse of
+            Nothing -> return ()
+            Just b  -> runBlock b
 runInstr while@(WhileBlock cond block) = do
     bool <- evalExpr cond
     if checkBool bool
