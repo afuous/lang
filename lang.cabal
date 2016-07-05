@@ -9,4 +9,8 @@ cabal-version:       >=1.8
 
 executable lang
   main-is:             Main.hs
-  build-depends:       base ==4.8.*, mtl ==2.2.*, containers ==0.5.*, transformers ==0.4.*
+  build-depends:       base ==4.8.*,
+                       mtl ==2.2.*,
+                       containers ==0.5.*,
+                       transformers ==0.4.*,
+                       parsec ==3.1.*

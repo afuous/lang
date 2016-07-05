@@ -1,6 +1,5 @@
 module Main where
 
-import           Lexer
 import           Parser
 import           Runner
 import           System.Environment (getArgs)
@@ -13,4 +12,4 @@ main = do
     runCode src
 
 runCode :: String -> IO ()
-runCode = run . runBlock . parseBlock . lexer
+runCode = run . runBlock . parseCode
