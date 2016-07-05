@@ -2,3 +2,6 @@ input x;
 input y;
 z = x+1;
 output z+x*y+z;
+output 2*3+1;
+output 1+2*3;
+output (1+2)*3;

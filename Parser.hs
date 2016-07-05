@@ -57,20 +57,36 @@ assignmentInstr = do
 parens :: Parser a -> Parser a
 parens p = void (lexeme $ char '(') *> p <* void (lexeme $ char ')')
 
+operators = [ ['+', '-']
+            , ['*', '/', '%']
+            , ['^'] -- TODO: this is right associative
+            ]
+
+--operatorsWith :: [[Char]] -> Parser Expr
+--operatorsWith [] = term
+--operatorsWith (x:xs) = try (do
+--    a <- operatorsWith xs
+--    chr <- oneOf x
+--    b <- expression
+--    return $ Operator chr a b) <|> operatorsWith xs
+--
+--operator = operatorsWith operators
+
 operator :: Parser Expr
 operator = do
-    a <- termTest
-    chr <- oneOf "+-*/"
+    a <- term
+    chr <- choice $ map (try . oneOf) operators
     b <- expression
     return $ Operator chr a b
 
-term :: Parser Expr -> Parser Expr
-term expr =   Constant <$> literal
-          <|> Variable <$> identifier
-          <|> parens expr
-
-termTest = term termTest
+term :: Parser Expr
+term = term' term
+  where
+    term' :: Parser Expr -> Parser Expr
+    term' expr =   Constant <$> literal
+               <|> Variable <$> identifier
+               <|> parens expression
 
 expression :: Parser Expr
 expression =   try operator
-           <|> termTest
+           <|> term
