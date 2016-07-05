@@ -5,3 +5,9 @@ output z+x*y+z;
 output 2*3+1;
 output 1+2*3;
 output (1+2)*3;
+
+input a;
+while a {
+	output a;
+	input a;
+}

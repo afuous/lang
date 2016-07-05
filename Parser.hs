@@ -13,7 +13,9 @@ parseCode code = parse (block <* eof) "syntax error" code
 block :: Parser Block
 block = many $   inputInstr
              <|> outputInstr
-             <|> assignmentInstr
+             <|> try assignmentInstr
+             <|> ifInstr
+             <|> whileInstr
 
 whitespace :: Parser ()
 whitespace = void $ many $ oneOf "\n\t "
@@ -54,6 +56,24 @@ assignmentInstr = do
     expr <- expression
     reservedSymbol ';'
     return $ Assignment ident expr
+
+ifInstr :: Parser Instr
+ifInstr = do
+    reservedWord "if"
+    cond <- expression
+    reservedSymbol '{'
+    instrs <- block
+    reservedSymbol '}'
+    return $ IfBlock cond instrs
+
+whileInstr :: Parser Instr
+whileInstr = do
+    reservedWord "while"
+    cond <- expression
+    reservedSymbol '{'
+    instrs <- block
+    reservedSymbol '}'
+    return $ WhileBlock cond instrs
 
 op = reservedSymbol
 
