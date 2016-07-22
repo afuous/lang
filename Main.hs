@@ -1,14 +1,14 @@
 module Main where
 
-import           Parser
-import           Runner
+import           Parser (parseCode)
+import           Runner (run, runBlock)
 import           System.Environment (getArgs)
 import           Types
 
 main :: IO ()
 main = do
     args <- getArgs
-    src <- readFile (args !! 0)
+    src <- readFile (head args)
     runCode src
 
 runCode :: String -> IO ()

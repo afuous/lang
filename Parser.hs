@@ -33,9 +33,6 @@ identifier = lexeme $ Ident <$> many1 letter
 reservedWord :: String -> Parser ()
 reservedWord s = void $ lexeme $ string s
 
-reservedSymbol :: Char -> Parser ()
-reservedSymbol c = void $ lexeme $ char c
-
 linebreak = many $ oneOf "\n\t "
 
 inputInstr :: Parser Instr
@@ -55,7 +52,7 @@ outputInstr = do
 assignmentInstr :: Parser Instr
 assignmentInstr = do
     ident <- identifier
-    reservedSymbol '='
+    reservedWord "="
     expr <- expression
     linebreak
     return $ Assignment ident expr
@@ -64,16 +61,16 @@ ifElseInstr :: Parser Instr
 ifElseInstr = do
     reservedWord "if"
     cond <- expression
-    reservedSymbol '{'
+    reservedWord "{"
     linebreak
     whenTrue <- block
-    reservedSymbol '}'
+    reservedWord "}"
     whenFalse <- optionMaybe $ try $ do
         reservedWord "else"
-        reservedSymbol '{'
+        reservedWord "{"
         linebreak
         b <- block
-        reservedSymbol '}'
+        reservedWord "}"
         return b
     linebreak
     return $ IfElseBlock cond whenTrue whenFalse
@@ -82,28 +79,27 @@ whileInstr :: Parser Instr
 whileInstr = do
     reservedWord "while"
     cond <- expression
-    reservedSymbol '{'
+    reservedWord "{"
     linebreak
     instrs <- block
-    reservedSymbol '}'
+    reservedWord "}"
     linebreak
     return $ WhileBlock cond instrs
 
-op = reservedSymbol
-
-operators = [ [ Infix (op '^' >> return (Operator '^')) AssocRight ]
-            , [ Infix (op '*' >> return (Operator '*')) AssocLeft
-              , Infix (op '/' >> return (Operator '/')) AssocLeft
-              , Infix (op '%' >> return (Operator '%')) AssocLeft ]
-            , [ Infix (op '+' >> return (Operator '+')) AssocLeft
-              , Infix (op '-' >> return (Operator '-')) AssocLeft ]
+operators = [ [ Infix (op "^" >> return (Operator '^')) AssocRight ]
+            , [ Infix (op "*" >> return (Operator '*')) AssocLeft
+              , Infix (op "/" >> return (Operator '/')) AssocLeft
+              , Infix (op "%" >> return (Operator '%')) AssocLeft ]
+            , [ Infix (op "+" >> return (Operator '+')) AssocLeft
+              , Infix (op "-" >> return (Operator '-')) AssocLeft ]
             ]
+  where op = reservedWord
 
 expression :: Parser Expr
 expression = buildExpressionParser operators term
 
 parens :: Parser a -> Parser a
-parens p = reservedSymbol '(' *> p <* reservedSymbol ')'
+parens p = reservedWord "(" *> p <* reservedWord ")"
 
 term :: Parser Expr
 term =   parens expression
