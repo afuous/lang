@@ -1,3 +1,4 @@
+# find the nth prime number
 input total
 tocheck = 2
 count = 0
@@ -5,11 +6,11 @@ while total - count {
 	n = 2
 	cont = 1
 	while cont {
-		if 0 ^ (tocheck - n) {
+		if 0 ^ (tocheck - n) { # if n equals tocheck
 			cont = 0
 			count = count + 1
 		} else {
-			if 0 ^ (tocheck % n) {
+			if 0 ^ (tocheck % n) { # if n divides tocheck
 				cont = 0
 			}
 		}

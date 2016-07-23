@@ -9,7 +9,7 @@ import           Text.Parsec.String (Parser)
 import           Types
 
 parseCode :: String -> Either ParseError Block
-parseCode code = parse (block <* eof) "syntax error" code
+parseCode code = parse (linebreak *> block <* eof) "syntax error" code
 
 block :: Parser Block
 block = many $   try inputInstr
@@ -34,7 +34,12 @@ identifier = lexeme $ Ident <$> many1 letter
 reservedWord :: String -> Parser ()
 reservedWord s = void $ lexeme $ string s
 
-linebreak = many $ oneOf "\n\t "
+comment :: Parser ()
+comment = do
+  void $ char '#'
+  void $ many $ noneOf "\n"
+
+linebreak = many $ void (oneOf "\n\t ") <|> comment
 
 inputInstr :: Parser Instr
 inputInstr = do
