@@ -3,6 +3,7 @@ module Runner (run, runBlock) where
 import           Control.Monad
 import           Control.Monad.State
 import qualified Data.Map as Map
+import           Operators
 import           Types
 
 run :: Action () -> IO ()
@@ -70,20 +71,10 @@ runInstr while@(WhileBlock cond block) = do
             runInstr while
         else return ()
 
-operators :: Map.Map Char (Integer -> Integer -> Integer)
-operators = Map.fromList [ ('+', (+))
-                         , ('-', (-))
-                         , ('*', (*))
-                         , ('/', div)
-                         , ('%', mod)
-                         , ('^', (^))
-                         ]
-
 evalExpr :: Expr -> Action Value
 evalExpr (Constant val) = return val
 evalExpr (Variable var) = getVar var
-evalExpr (Operator char left right) = do
+evalExpr (Operator (Op _ f _) left right) = do
     Value lValue <- evalExpr left
     Value rValue <- evalExpr right
-    let func = operators Map.! char
-    return $ Value (func lValue rValue)
+    return $ Value (f lValue rValue)

@@ -2,6 +2,7 @@ module Types where
 
 import           Control.Monad.State
 import qualified Data.Map as Map
+import           Operators
 
 
 -- types for parsing
@@ -21,7 +22,7 @@ data Instr = Assignment Ident Expr
 
 data Expr = Constant Value
           | Variable Ident
-          | Operator Char Expr Expr
+          | Operator Op Expr Expr
           deriving Show
 
 

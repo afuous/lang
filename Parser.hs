@@ -1,6 +1,7 @@
 module Parser (parseCode) where
 
 import           Control.Monad (void)
+import           Operators
 import           Text.Parsec
 import           Text.Parsec.Char
 import           Text.Parsec.Expr
@@ -86,17 +87,15 @@ whileInstr = do
     linebreak
     return $ WhileBlock cond instrs
 
-operators = [ [ Infix (op "^" >> return (Operator '^')) AssocRight ]
-            , [ Infix (op "*" >> return (Operator '*')) AssocLeft
-              , Infix (op "/" >> return (Operator '/')) AssocLeft
-              , Infix (op "%" >> return (Operator '%')) AssocLeft ]
-            , [ Infix (op "+" >> return (Operator '+')) AssocLeft
-              , Infix (op "-" >> return (Operator '-')) AssocLeft ]
-            ]
-  where op = reservedWord
+operatorTable = map (map toParsec) (reverse operators)
+  where
+    toParsec op = Infix (reservedWord (symbol op) >> return (Operator op))
+                        (parsecAssoc (assoc op))
+    parsecAssoc RAssoc = AssocRight
+    parsecAssoc LAssoc = AssocLeft
 
 expression :: Parser Expr
-expression = buildExpressionParser operators term
+expression = buildExpressionParser operatorTable term
 
 parens :: Parser a -> Parser a
 parens p = reservedWord "(" *> p <* reservedWord ")"
