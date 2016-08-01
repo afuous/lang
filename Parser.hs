@@ -26,7 +26,8 @@ lexeme :: Parser a -> Parser a
 lexeme p = p <* void (many (oneOf "\t "))
 
 literal :: Parser Value
-literal = lexeme $ Value <$> read <$> many1 digit
+literal = lexeme $ LangInt <$> read <$> many1 digit
+               <|> LangStr <$> (char '"' *> many letter <* char '"')
 
 identifier :: Parser Ident
 identifier = lexeme $ Ident <$> many1 letter

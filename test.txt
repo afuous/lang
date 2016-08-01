@@ -20,3 +20,6 @@ while total - count {
 }
 output tocheck - 1
 
+output "hello"
+stuff = "goodbye"
+output stuff

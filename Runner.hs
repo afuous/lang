@@ -44,15 +44,17 @@ getVar var = do
         Just val -> return val
 
 checkBool :: Value -> Bool
-checkBool (Value num) = num /= 0
+checkBool (LangInt num) = num /= 0
 
 runInstr :: Instr -> Action ()
 runInstr (Output expr) = do
     value <- evalExpr expr
-    liftIO $ print $ unValue $ value
+    case value of
+      LangInt num -> liftIO $ print num
+      LangStr str -> liftIO $ putStrLn str
 runInstr (Input ident) = do
     input <- liftIO readLn
-    setVar ident (Value input)
+    setVar ident (LangInt input)
 runInstr (Assignment ident expr) = do
     value <- evalExpr expr
     setVar ident value
@@ -75,6 +77,6 @@ evalExpr :: Expr -> Action Value
 evalExpr (Constant val) = return val
 evalExpr (Variable var) = getVar var
 evalExpr (Operator (Op _ f _) left right) = do
-    Value lValue <- evalExpr left
-    Value rValue <- evalExpr right
-    return $ Value (f lValue rValue)
+    lValue <- evalExpr left
+    rValue <- evalExpr right
+    return $ f lValue rValue

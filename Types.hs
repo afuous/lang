@@ -1,17 +1,14 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Types where
 
 import           Control.Monad.State
 import qualified Data.Map as Map
-import           Operators
 
-
--- types for parsing
 
 type Block = [Instr]
 
 newtype Ident = Ident { unIdent :: String } deriving (Show, Eq, Ord)
-
-newtype Value = Value { unValue :: Integer } deriving (Show, Eq)
 
 data Instr = Assignment Ident Expr
            | Output Expr
@@ -25,10 +22,22 @@ data Expr = Constant Value
           | Operator Op Expr Expr
           deriving Show
 
-
--- types for execution
-
 type Vars = [Map.Map Ident Value]
 
 type Action a = StateT Vars IO a
+
+data Value = LangInt Integer
+           | LangStr String
+           deriving (Show, Eq)
+
+data Op = Op
+  { symbol :: String
+  , call :: Value -> Value -> Value
+  , assoc :: Assoc
+  } deriving Show
+
+instance Show (Value -> Value -> Value) where
+  show _ = "function"
+
+data Assoc = RAssoc | LAssoc deriving Show
 
