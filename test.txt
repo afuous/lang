@@ -4,14 +4,14 @@ tocheck = 2
 count = 0
 while total > count {
 	n = 2
-	cont = 1 == 1
+	cont = True
 	while cont {
-		if tocheck == n { # if n equals tocheck
-			cont = 1 == 0
+		if tocheck == n {
+			cont = False
 			count = count + 1
 		} else {
 			if tocheck % n == 0 {
-				cont = 1 == 0
+				cont = False
 			}
 		}
 		n = n + 1

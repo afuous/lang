@@ -49,6 +49,7 @@ runInstr (Output expr) = do
     case value of
       LangInt num -> liftIO $ print num
       LangStr str -> liftIO $ putStrLn str
+      LangBool bool -> liftIO $ print bool
 runInstr (Input ident) = do
     input <- liftIO readLn
     setVar ident (LangInt input)

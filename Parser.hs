@@ -28,6 +28,8 @@ lexeme p = p <* void (many (oneOf "\t "))
 literal :: Parser Value
 literal = lexeme $ LangInt <$> read <$> many1 digit
                <|> LangStr <$> (char '"' *> many letter <* char '"')
+               <|> reservedWord "True" *> pure (LangBool True)
+               <|> reservedWord "False" *> pure (LangBool False)
 
 identifier :: Parser Ident
 identifier = lexeme $ Ident <$> many1 letter
@@ -109,5 +111,5 @@ parens p = reservedWord "(" *> p <* reservedWord ")"
 
 term :: Parser Expr
 term =   parens expression
+     <|> try (Constant <$> literal)
      <|> Variable <$> identifier
-     <|> Constant <$> literal
