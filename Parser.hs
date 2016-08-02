@@ -97,8 +97,9 @@ operatorTable = map (map toParsec) (reverse operators)
   where
     toParsec op = Infix (reservedWord (symbol op) >> return (Operator op))
                         (parsecAssoc (assoc op))
-    parsecAssoc RAssoc = AssocRight
     parsecAssoc LAssoc = AssocLeft
+    parsecAssoc RAssoc = AssocRight
+    parsecAssoc NoAssoc = AssocNone
 
 expression :: Parser Expr
 expression = buildExpressionParser operatorTable term

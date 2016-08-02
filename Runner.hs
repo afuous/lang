@@ -43,9 +43,6 @@ getVar var = do
         Nothing -> get' xs
         Just val -> return val
 
-checkBool :: Value -> Bool
-checkBool (LangInt num) = num /= 0
-
 runInstr :: Instr -> Action ()
 runInstr (Output expr) = do
     value <- evalExpr expr
@@ -59,15 +56,15 @@ runInstr (Assignment ident expr) = do
     value <- evalExpr expr
     setVar ident value
 runInstr (IfElseBlock cond whenTrue whenFalse) = do
-    bool <- evalExpr cond
-    if checkBool bool
+    LangBool bool <- evalExpr cond
+    if bool
         then runBlock whenTrue
         else case whenFalse of
             Nothing -> return ()
             Just b  -> runBlock b
 runInstr while@(WhileBlock cond block) = do
-    bool <- evalExpr cond
-    if checkBool bool
+    LangBool bool <- evalExpr cond
+    if bool
         then do
             runBlock block
             runInstr while

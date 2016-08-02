@@ -2,16 +2,16 @@
 input total
 tocheck = 2
 count = 0
-while total - count {
+while total > count {
 	n = 2
-	cont = 1
+	cont = 1 == 1
 	while cont {
-		if 0 ^ (tocheck - n) { # if n equals tocheck
-			cont = 0
+		if tocheck == n { # if n equals tocheck
+			cont = 1 == 0
 			count = count + 1
 		} else {
-			if 0 ^ (tocheck % n) { # if n divides tocheck
-				cont = 0
+			if tocheck % n == 0 {
+				cont = 1 == 0
 			}
 		}
 		n = n + 1

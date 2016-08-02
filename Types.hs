@@ -28,6 +28,7 @@ type Action a = StateT Vars IO a
 
 data Value = LangInt Integer
            | LangStr String
+           | LangBool Bool
            deriving (Show, Eq)
 
 data Op = Op
@@ -39,5 +40,8 @@ data Op = Op
 instance Show (Value -> Value -> Value) where
   show _ = "function"
 
-data Assoc = RAssoc | LAssoc deriving Show
+data Assoc = RAssoc
+           | LAssoc
+           | NoAssoc
+           deriving Show
 
