@@ -72,11 +72,9 @@ runInstr (IfElseBlock cond whenTrue whenFalse) = do
       Just b  -> runBlock b
 runInstr while@(WhileBlock cond block) = do
   LangBool bool <- evalExpr cond
-  if bool
-    then do
-      runBlock block
-      runInstr while
-    else return ()
+  when bool $ do
+    runBlock block
+    runInstr while
 runInstr (Call name args) = do
   LangFunc argNames block <- getVar name
   if length args /= length argNames
