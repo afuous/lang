@@ -10,15 +10,22 @@ run :: Action () -> IO ()
 run m = evalStateT m []
 
 runBlock :: Block -> Action ()
-runBlock b = do
+runBlock block = do
     modify (Map.empty:)
-    runBlock' b
+    runBlock' block
     modify tail
   where
     runBlock' [] = return ()
     runBlock' (x:xs) = do
         runInstr x
         runBlock' xs
+
+runBlockWith :: Block -> Map.Map Ident Value -> Action ()
+runBlockWith block vars = do
+  scope <- get
+  put [vars]
+  runBlock block
+  put scope
 
 setVar :: Ident -> Value -> Action ()
 setVar ident val = do
@@ -70,6 +77,13 @@ runInstr while@(WhileBlock cond block) = do
             runBlock block
             runInstr while
         else return ()
+runInstr (Call name args) = do
+  LangFunc argNames block <- getVar name
+  if length args /= length argNames
+    then fail "wrong number of arguments"
+    else do
+      argValues <- mapM evalExpr args
+      runBlockWith block (Map.fromList (zip argNames argValues))
 
 evalExpr :: Expr -> Action Value
 evalExpr (Constant val) = return val
@@ -78,3 +92,4 @@ evalExpr (Operator (Op _ f _) left right) = do
     lValue <- evalExpr left
     rValue <- evalExpr right
     return $ f lValue rValue
+evalExpr (FuncDef args block) = return $ LangFunc args block

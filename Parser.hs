@@ -17,6 +17,7 @@ block = many $   try inputInstr
              <|> try assignmentInstr
              <|> try ifElseInstr
              <|> whileInstr
+             <|> callInstr
 
 whitespace :: Parser ()
 whitespace = void $ many $ oneOf "n\t "
@@ -95,6 +96,11 @@ whileInstr = do
     linebreak
     return $ WhileBlock cond instrs
 
+callInstr :: Parser Instr
+callInstr = do
+  reservedWord "call"
+  (Call <$> identifier <*> many expression) <* linebreak
+
 operatorTable = map (map toParsec) (reverse operators)
   where
     toParsec op = Infix (reservedWord (symbol op) >> return (Operator op))
@@ -106,10 +112,23 @@ operatorTable = map (map toParsec) (reverse operators)
 expression :: Parser Expr
 expression = buildExpressionParser operatorTable term
 
+lambda :: Parser Expr
+lambda = do
+  reservedWord "("
+  args <- many identifier
+  reservedWord ")"
+  reservedWord "=>"
+  reservedWord "{"
+  linebreak
+  instrs <- block
+  reservedWord "}"
+  return $ FuncDef args instrs
+
 parens :: Parser a -> Parser a
 parens p = reservedWord "(" *> p <* reservedWord ")"
 
 term :: Parser Expr
-term =   parens expression
+term =   try lambda
+     <|> parens expression
      <|> try (Constant <$> literal)
      <|> Variable <$> identifier

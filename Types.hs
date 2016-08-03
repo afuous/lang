@@ -15,11 +15,13 @@ data Instr = Assignment Ident Expr
            | Input Ident
            | IfElseBlock Expr Block (Maybe Block)
            | WhileBlock Expr Block
+           | Call Ident [Expr]
            deriving Show
 
 data Expr = Constant Value
           | Variable Ident
           | Operator Op Expr Expr
+          | FuncDef [Ident] Block
           deriving Show
 
 type Vars = [Map.Map Ident Value]
@@ -29,7 +31,8 @@ type Action a = StateT Vars IO a
 data Value = LangInt Integer
            | LangStr String
            | LangBool Bool
-           deriving (Show, Eq)
+           | LangFunc [Ident] Block
+           deriving Show
 
 data Op = Op
   { symbol :: String

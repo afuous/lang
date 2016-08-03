@@ -23,3 +23,13 @@ output tocheck - 1
 output "hello"
 stuff = "goodbye"
 output stuff
+
+func = (x y) => {
+	output x + y
+}
+call func 6 7
+
+stuff = () => {
+	output "hi"
+}
+call stuff
