@@ -47,54 +47,54 @@ linebreak = many $ void (oneOf "\n\t ") <|> comment
 
 inputInstr :: Parser Instr
 inputInstr = do
-    reservedWord "input"
-    ident <- identifier
-    linebreak
-    return $ Input ident
+  reservedWord "input"
+  ident <- identifier
+  linebreak
+  return $ Input ident
 
 outputInstr :: Parser Instr
 outputInstr = do
-    reservedWord "output"
-    expr <- expression
-    linebreak
-    return $ Output expr
+  reservedWord "output"
+  expr <- expression
+  linebreak
+  return $ Output expr
 
 assignmentInstr :: Parser Instr
 assignmentInstr = do
-    ident <- identifier
-    reservedWord "="
-    expr <- expression
-    linebreak
-    return $ Assignment ident expr
+  ident <- identifier
+  reservedWord "="
+  expr <- expression
+  linebreak
+  return $ Assignment ident expr
 
 ifElseInstr :: Parser Instr
 ifElseInstr = do
-    reservedWord "if"
-    cond <- expression
+  reservedWord "if"
+  cond <- expression
+  reservedWord "{"
+  linebreak
+  whenTrue <- block
+  reservedWord "}"
+  whenFalse <- optionMaybe $ try $ do
+    reservedWord "else"
     reservedWord "{"
     linebreak
-    whenTrue <- block
+    b <- block
     reservedWord "}"
-    whenFalse <- optionMaybe $ try $ do
-        reservedWord "else"
-        reservedWord "{"
-        linebreak
-        b <- block
-        reservedWord "}"
-        return b
-    linebreak
-    return $ IfElseBlock cond whenTrue whenFalse
+    return b
+  linebreak
+  return $ IfElseBlock cond whenTrue whenFalse
 
 whileInstr :: Parser Instr
 whileInstr = do
-    reservedWord "while"
-    cond <- expression
-    reservedWord "{"
-    linebreak
-    instrs <- block
-    reservedWord "}"
-    linebreak
-    return $ WhileBlock cond instrs
+  reservedWord "while"
+  cond <- expression
+  reservedWord "{"
+  linebreak
+  instrs <- block
+  reservedWord "}"
+  linebreak
+  return $ WhileBlock cond instrs
 
 callInstr :: Parser Instr
 callInstr = do
