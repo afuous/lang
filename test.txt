@@ -1,26 +1,26 @@
 # find the nth prime number
 input total
-tocheck = 2
+to_check = 2
 count = 0
 while total > count {
 	n = 2
 	cont = True
 	while cont {
-		if tocheck == n {
+		if to_check == n {
 			cont = False
 			count = count + 1
 		} else {
-			if tocheck % n == 0 {
+			if to_check % n == 0 {
 				cont = False
 			}
 		}
 		n = n + 1
 	}
-	tocheck = tocheck + 1
+	to_check = to_check + 1
 }
-output tocheck - 1
+output to_check - 1
 
-output "hello"
+output "hello there"
 stuff = "goodbye"
 output stuff
 
@@ -30,6 +30,6 @@ func = (x y) => {
 call func 6 7
 
 stuff = () => {
-	output "hi"
+	output "h\\i \" h\i"
 }
 call stuff

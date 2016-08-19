@@ -28,12 +28,19 @@ lexeme p = p <* void (many (oneOf "\t "))
 
 literal :: Parser Value
 literal = lexeme $ LangInt <$> read <$> many1 digit
-               <|> LangStr <$> (char '"' *> many letter <* char '"')
+               <|> LangStr <$> quotedStr
                <|> reservedWord "True" *> pure (LangBool True)
                <|> reservedWord "False" *> pure (LangBool False)
+  where
+    quotedStr :: Parser String
+    quotedStr = char '"' *> strContents <* char '"'
+    strContents :: Parser String
+    strContents = many (try (string "\\\"" *> pure '"')
+                    <|> try (string "\\\\" *> pure '\\')
+                    <|> noneOf "\"")
 
 identifier :: Parser Ident
-identifier = lexeme $ Ident <$> many1 letter
+identifier = lexeme $ Ident <$> many1 (letter <|> char '_')
 
 reservedWord :: String -> Parser ()
 reservedWord s = void $ lexeme $ string s
