@@ -27,9 +27,24 @@ output stuff
 func = (x y) => {
 	output x + y
 }
-call func 6 7
+func(6 7)
 
 stuff = () => {
 	output "h\\i \" h\i"
 }
-call stuff
+stuff()
+
+# a = stuff()
+# should throw runtime error
+
+thing = (a b) => {
+	return a + b
+}
+
+output thing(4 5)
+
+morestuff = (x) => {
+	return x + 1
+}
+
+output morestuff((2 + 1))

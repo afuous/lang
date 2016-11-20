@@ -15,12 +15,13 @@ block :: Parser Block
 block = many $   try inputInstr
              <|> outputInstr
              <|> try assignmentInstr
+             <|> returnInstr
              <|> try ifElseInstr
              <|> whileInstr
              <|> callInstr
 
 whitespace :: Parser ()
-whitespace = void $ many $ oneOf "n\t "
+whitespace = void $ many $ oneOf "\n\t "
 
 -- TODO: clean up whitespace that allows newlines and whitespace that does not
 lexeme :: Parser a -> Parser a
@@ -32,9 +33,7 @@ literal = lexeme $ LangInt <$> read <$> many1 digit
                <|> reservedWord "True" *> pure (LangBool True)
                <|> reservedWord "False" *> pure (LangBool False)
   where
-    quotedStr :: Parser String
     quotedStr = char '"' *> strContents <* char '"'
-    strContents :: Parser String
     strContents = many (try (string "\\\"" *> pure '"')
                     <|> try (string "\\\\" *> pure '\\')
                     <|> noneOf "\"")
@@ -50,21 +49,14 @@ comment = do
   void $ char '#'
   void $ many $ noneOf "\n"
 
-linebreak = many $ void (oneOf "\n\t ") <|> comment
+linebreak :: Parser ()
+linebreak = void $ many $ void (oneOf "\n\t ") <|> comment
 
 inputInstr :: Parser Instr
-inputInstr = do
-  reservedWord "input"
-  ident <- identifier
-  linebreak
-  return $ Input ident
+inputInstr = reservedWord "input" *> (Input <$> identifier) <* linebreak
 
 outputInstr :: Parser Instr
-outputInstr = do
-  reservedWord "output"
-  expr <- expression
-  linebreak
-  return $ Output expr
+outputInstr = reservedWord "output" *> (Output <$> expression) <* linebreak
 
 assignmentInstr :: Parser Instr
 assignmentInstr = do
@@ -105,12 +97,17 @@ whileInstr = do
 
 callInstr :: Parser Instr
 callInstr = do
-  reservedWord "call"
-  (Call <$> identifier <*> many expression) <* linebreak
+  (func, args) <- funcCall
+  linebreak
+  return $ Call func args
+
+returnInstr :: Parser Instr
+returnInstr =
+  reservedWord "return" *> (Return <$> expression) <* linebreak
 
 operatorTable = map (map toParsec) (reverse operators)
   where
-    toParsec op = Infix (reservedWord (symbol op) >> return (Operator op))
+    toParsec op = Infix (reservedWord (symbol op) *> pure (Operator op))
                         (parsecAssoc (assoc op))
     parsecAssoc LAssoc = AssocLeft
     parsecAssoc RAssoc = AssocRight
@@ -134,8 +131,15 @@ lambda = do
 parens :: Parser a -> Parser a
 parens p = reservedWord "(" *> p <* reservedWord ")"
 
+thing :: Parser Expr
+thing =   try lambda
+      <|> parens expression
+      <|> try (Constant <$> literal)
+      <|> Variable <$> identifier
+
+funcCall :: Parser (Expr, [Expr])
+funcCall = (,) <$> thing <*> parens (many thing)
+
 term :: Parser Expr
-term =   try lambda
-     <|> parens expression
-     <|> try (Constant <$> literal)
-     <|> Variable <$> identifier
+term =   do { (func, args) <- try funcCall; return $ FuncCall func args }
+     <|> thing

@@ -2,12 +2,13 @@ module Runner (run, runBlock) where
 
 import           Control.Monad
 import           Control.Monad.State
+import           Control.Monad.Trans.Either
 import qualified Data.Map as Map
 import           Operators
 import           Types
 
 run :: Action () -> IO ()
-run m = evalStateT m []
+run m = void $ runEitherT (evalStateT m [])
 
 runBlock :: Block -> Action ()
 runBlock block = do
@@ -15,17 +16,14 @@ runBlock block = do
   runBlock' block
   modify tail
  where
-  runBlock' [] = return ()
-  runBlock' (x:xs) = do
-    runInstr x
-    runBlock' xs
+  runBlock' xs = forM_ xs runInstr
 
-runBlockWith :: Block -> Map.Map Ident Value -> Action ()
-runBlockWith block vars = do
-  scope <- get
-  put [vars]
-  runBlock block
-  put scope
+runFunc :: Block -> Map.Map Ident Value -> IO (Maybe Value)
+runFunc block vars = do
+  result <- runEitherT (evalStateT (runBlock block) [vars])
+  return $ case result of
+    Left val -> Just val
+    Right _ -> Nothing
 
 setVar :: Ident -> Value -> Action ()
 setVar ident val = do
@@ -75,13 +73,11 @@ runInstr while@(WhileBlock cond block) = do
   when bool $ do
     runBlock block
     runInstr while
-runInstr (Call name args) = do
-  LangFunc argNames block <- getVar name
-  if length args /= length argNames
-    then fail "wrong number of arguments"
-    else do
-      argValues <- mapM evalExpr args
-      runBlockWith block (Map.fromList (zip argNames argValues))
+runInstr (Call func args) = void $ executeFunc func args
+runInstr (Return expr) = evalExpr expr >>= stop
+
+stop :: Value -> Action ()
+stop = StateT . const . EitherT . return . Left
 
 evalExpr :: Expr -> Action Value
 evalExpr (Constant val) = return val
@@ -91,3 +87,17 @@ evalExpr (Operator (Op _ f _) left right) = do
   rValue <- evalExpr right
   return $ f lValue rValue
 evalExpr (FuncDef args block) = return $ LangFunc args block
+evalExpr (FuncCall func args) = do
+  result <- executeFunc func args
+  case result of
+    Just val -> return val
+    Nothing -> error "function did not return anything"
+
+executeFunc :: Expr -> [Expr] -> Action (Maybe Value)
+executeFunc func args = do
+  LangFunc argNames block <- evalExpr func
+  if length args /= length argNames
+    then fail "wrong number of arguments"
+    else do
+      argValues <- mapM evalExpr args
+      liftIO $ runFunc block (Map.fromList (zip argNames argValues))

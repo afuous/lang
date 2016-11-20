@@ -13,4 +13,5 @@ executable lang
                        mtl ==2.2.*,
                        containers ==0.5.*,
                        transformers ==0.4.*,
-                       parsec ==3.1.*
+                       parsec ==3.1.*,
+                       either ==4.4.*
