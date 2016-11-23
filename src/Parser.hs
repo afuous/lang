@@ -12,9 +12,7 @@ parseCode :: String -> Either ParseError Block
 parseCode code = parse (linebreak *> block <* eof) "syntax error" code
 
 block :: Parser Block
-block = many $   try inputInstr
-             <|> outputInstr
-             <|> try assignmentInstr
+block = many $   try assignmentInstr
              <|> returnInstr
              <|> try ifElseInstr
              <|> whileInstr
@@ -32,6 +30,7 @@ literal = lexeme $ LangInt <$> read <$> many1 digit
                <|> LangStr <$> quotedStr
                <|> reservedWord "True" *> pure (LangBool True)
                <|> reservedWord "False" *> pure (LangBool False)
+               <|> reservedWord "Null" *> pure LangNull
   where
     quotedStr = char '"' *> strContents <* char '"'
     strContents = many (try (string "\\\"" *> pure '"')
@@ -51,12 +50,6 @@ comment = do
 
 linebreak :: Parser ()
 linebreak = void $ many $ void (oneOf "\n\t ") <|> comment
-
-inputInstr :: Parser Instr
-inputInstr = reservedWord "input" *> (Input <$> identifier) <* linebreak
-
-outputInstr :: Parser Instr
-outputInstr = reservedWord "output" *> (Output <$> expression) <* linebreak
 
 assignmentInstr :: Parser Instr
 assignmentInstr = do

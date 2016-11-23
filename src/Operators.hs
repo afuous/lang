@@ -26,9 +26,13 @@ langOr (LangBool a) (LangBool b) = LangBool (a || b)
 langEq (LangBool a) (LangBool b) = LangBool (a == b)
 langEq (LangInt a) (LangInt b) = LangBool (a == b)
 langEq (LangStr a) (LangStr b) = LangBool (a == b)
+langEq LangNull LangNull = LangBool True
+langEq _ _ = LangBool False
 langNotEq (LangBool a) (LangBool b) = LangBool (a /= b)
 langNotEq (LangInt a) (LangInt b) = LangBool (a /= b)
 langNotEq (LangStr a) (LangStr b) = LangBool (a /= b)
+langNotEq LangNull LangNull = LangBool False
+langNotEq _ _ = LangBool True
 langLt (LangInt a) (LangInt b) = LangBool (a < b)
 langGt (LangInt a) (LangInt b) = LangBool (a > b)
 langLtEq (LangInt a) (LangInt b) = LangBool (a <= b)

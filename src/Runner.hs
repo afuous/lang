@@ -8,7 +8,22 @@ import           Operators
 import           Types
 
 run :: Action () -> IO ()
-run m = void $ runEitherT (evalStateT m [])
+run m = void $ runEitherT (evalStateT m [builtins])
+
+builtins :: Map.Map Ident Value
+builtins = Map.fromList
+  [ (Ident "print", BuiltInFunc (\[arg] -> output arg >> return LangNull))
+  , (Ident "input", BuiltInFunc (\[] -> LangStr <$> liftIO getLine))
+  , (Ident "parse_int", BuiltInFunc (\[LangStr s] -> return (LangInt (read s))))
+  ]
+
+output :: Value -> Action ()
+output val = liftIO $ case val of
+  LangInt num -> print num
+  LangStr str -> putStrLn str
+  LangBool bool -> print bool
+  LangNull -> putStrLn "Null"
+  BuiltInFunc _ -> putStrLn "<built in function>"
 
 runBlock :: Block -> Action ()
 runBlock block = do
@@ -16,12 +31,12 @@ runBlock block = do
   forM_ block runInstr
   modify tail
 
-runFunc :: Block -> Map.Map Ident Value -> IO (Maybe Value)
+runFunc :: Block -> Map.Map Ident Value -> IO Value
 runFunc block vars = do
-  result <- runEitherT (evalStateT (runBlock block) [vars])
+  result <- runEitherT (evalStateT (runBlock block) [builtins, vars])
   return $ case result of
-    Left val -> Just val
-    Right _ -> Nothing
+    Left val -> val
+    Right _ -> LangNull
 
 setVar :: Ident -> Value -> Action ()
 setVar ident val = do
@@ -47,15 +62,6 @@ getVar var = do
     Just val -> return val
 
 runInstr :: Instr -> Action ()
-runInstr (Output expr) = do
-  value <- evalExpr expr
-  case value of
-    LangInt num -> liftIO $ print num
-    LangStr str -> liftIO $ putStrLn str
-    LangBool bool -> liftIO $ print bool
-runInstr (Input ident) = do
-  input <- liftIO readLn
-  setVar ident (LangInt input)
 runInstr (Assignment ident expr) = do
   value <- evalExpr expr
   setVar ident value
@@ -85,17 +91,18 @@ evalExpr (Operator (Op _ f _) left right) = do
   rValue <- evalExpr right
   return $ f lValue rValue
 evalExpr (FuncDef args block) = return $ LangFunc args block
-evalExpr (FuncCall func args) = do
-  result <- executeFunc func args
-  case result of
-    Just val -> return val
-    Nothing -> error "function did not return anything"
+evalExpr (FuncCall func args) = executeFunc func args
 
-executeFunc :: Expr -> [Expr] -> Action (Maybe Value)
+executeFunc :: Expr -> [Expr] -> Action Value
 executeFunc func args = do
-  LangFunc argNames block <- evalExpr func
-  if length args /= length argNames
-    then fail "wrong number of arguments"
-    else do
+  expr <- evalExpr func
+  case expr of
+    LangFunc argNames block ->
+      if length args /= length argNames
+        then fail "wrong number of arguments"
+        else do
+          argValues <- mapM evalExpr args
+          liftIO $ runFunc block (Map.fromList (zip argNames argValues))
+    BuiltInFunc f -> do
       argValues <- mapM evalExpr args
-      liftIO $ runFunc block (Map.fromList (zip argNames argValues))
+      f argValues

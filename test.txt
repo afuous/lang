@@ -1,5 +1,5 @@
 # find the nth prime number
-input total
+total = parse_int(input())
 to_check = 2
 count = 0
 while total > count {
@@ -18,41 +18,38 @@ while total > count {
 	}
 	to_check = to_check + 1
 }
-output to_check - 1
+print(to_check - 1)
 
-output "hello there"
+print("hello there")
 stuff = "goodbye"
-output stuff
+print(stuff)
 
 func = (x, y,) => {
-	output x + y
+	print(x + y)
 }
 func(6, 7,)
 
 stuff = () => {
-	output "h\\i \" h\i"
+	print("h\\i \" h\i")
 }
-stuff()
-
-# a = stuff()
-# should throw runtime error
+print(stuff())
 
 thing = (a, b,) => {
 	return a + b
 }
 
-output thing(4, 5,)
+print(thing(4, 5,))
 
 more_stuff = (x) => {
 	return x + 1
 }
 
-output more_stuff(2 + 1)
+print(more_stuff(2 + 1))
 
 even_more_stuff = (a, b) => {
 	return a * b
 }
 
-output even_more_stuff(1 + 1, 4 / 2)
+print(even_more_stuff(1 + 1, 4 / 2))
 
-(x) => { output x } (7)
+(x) => { print(x) } (7)
