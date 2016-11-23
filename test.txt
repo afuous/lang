@@ -24,10 +24,10 @@ output "hello there"
 stuff = "goodbye"
 output stuff
 
-func = (x y) => {
+func = (x, y,) => {
 	output x + y
 }
-func(6 7)
+func(6, 7,)
 
 stuff = () => {
 	output "h\\i \" h\i"
@@ -37,14 +37,22 @@ stuff()
 # a = stuff()
 # should throw runtime error
 
-thing = (a b) => {
+thing = (a, b,) => {
 	return a + b
 }
 
-output thing(4 5)
+output thing(4, 5,)
 
-morestuff = (x) => {
+more_stuff = (x) => {
 	return x + 1
 }
 
-output morestuff((2 + 1))
+output more_stuff(2 + 1)
+
+even_more_stuff = (a, b) => {
+	return a * b
+}
+
+output even_more_stuff(1 + 1, 4 / 2)
+
+(x) => { output x } (7)

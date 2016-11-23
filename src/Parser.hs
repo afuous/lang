@@ -119,7 +119,7 @@ expression = buildExpressionParser operatorTable term
 lambda :: Parser Expr
 lambda = do
   reservedWord "("
-  args <- many identifier
+  args <- optionalTrailing identifier (reservedWord ",")
   reservedWord ")"
   reservedWord "=>"
   reservedWord "{"
@@ -127,6 +127,14 @@ lambda = do
   instrs <- block
   reservedWord "}"
   return $ FuncDef args instrs
+
+optionalTrailing :: Parser a -> Parser () -> Parser [a]
+optionalTrailing p delim = do
+  first <- many (try $ p <* delim)
+  last <- optionMaybe p
+  return $ case last of
+    Nothing -> first
+    Just x -> first ++ [x]
 
 parens :: Parser a -> Parser a
 parens p = reservedWord "(" *> p <* reservedWord ")"
@@ -138,7 +146,10 @@ thing =   try lambda
       <|> Variable <$> identifier
 
 funcCall :: Parser (Expr, [Expr])
-funcCall = (,) <$> thing <*> parens (many thing)
+funcCall = do
+  name <- thing
+  args <- parens $ optionalTrailing expression (reservedWord ",")
+  return (name, args)
 
 term :: Parser Expr
 term =   do { (func, args) <- try funcCall; return $ FuncCall func args }

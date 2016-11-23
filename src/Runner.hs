@@ -13,10 +13,8 @@ run m = void $ runEitherT (evalStateT m [])
 runBlock :: Block -> Action ()
 runBlock block = do
   modify (Map.empty:)
-  runBlock' block
+  forM_ block runInstr
   modify tail
- where
-  runBlock' xs = forM_ xs runInstr
 
 runFunc :: Block -> Map.Map Ident Value -> IO (Maybe Value)
 runFunc block vars = do
