@@ -1,5 +1,4 @@
 module Runner (run, runBlock) where
-
 import           Control.Monad
 import           Control.Monad.State
 import           Control.Monad.Trans.Either
@@ -8,14 +7,7 @@ import           Operators
 import           Types
 
 run :: Action () -> IO ()
-run m = void $ runEitherT (evalStateT m [builtins])
-
-builtins :: Map.Map Ident Value
-builtins = Map.fromList
-  [ (Ident "print", BuiltInFunc (\[arg] -> output arg >> return LangNull))
-  , (Ident "input", BuiltInFunc (\[] -> LangStr <$> liftIO getLine))
-  , (Ident "parse_int", BuiltInFunc (\[LangStr s] -> return (LangInt (read s))))
-  ]
+run m = void $ runEitherT (evalStateT m [])
 
 output :: Value -> Action ()
 output val = liftIO $ case val of
@@ -23,20 +15,12 @@ output val = liftIO $ case val of
   LangStr str -> putStrLn str
   LangBool bool -> print bool
   LangNull -> putStrLn "Null"
-  BuiltInFunc _ -> putStrLn "<built in function>"
 
 runBlock :: Block -> Action ()
 runBlock block = do
   modify (Map.empty:)
   forM_ block runInstr
   modify tail
-
-runFunc :: Block -> Map.Map Ident Value -> IO Value
-runFunc block vars = do
-  result <- runEitherT (evalStateT (runBlock block) [builtins, vars])
-  return $ case result of
-    Left val -> val
-    Right _ -> LangNull
 
 setVar :: Ident -> Value -> Action ()
 setVar ident val = do
@@ -77,11 +61,10 @@ runInstr while@(WhileBlock cond block) = do
   when bool $ do
     runBlock block
     runInstr while
-runInstr (Call func args) = void $ executeFunc func args
-runInstr (Return expr) = evalExpr expr >>= stop
-
-stop :: Value -> Action ()
-stop = StateT . const . EitherT . return . Left
+runInstr (OutputInstr expr) = evalExpr expr >>= output
+runInstr (InputInstr ident) = do
+  input <- liftIO $ readLn
+  setVar ident (LangInt input)
 
 evalExpr :: Expr -> Action Value
 evalExpr (Constant val) = return val
@@ -90,19 +73,3 @@ evalExpr (Operator (Op _ f _) left right) = do
   lValue <- evalExpr left
   rValue <- evalExpr right
   return $ f lValue rValue
-evalExpr (FuncDef args block) = return $ LangFunc args block
-evalExpr (FuncCall func args) = executeFunc func args
-
-executeFunc :: Expr -> [Expr] -> Action Value
-executeFunc func args = do
-  expr <- evalExpr func
-  case expr of
-    LangFunc argNames block ->
-      if length args /= length argNames
-        then fail "wrong number of arguments"
-        else do
-          argValues <- mapM evalExpr args
-          liftIO $ runFunc block (Map.fromList (zip argNames argValues))
-    BuiltInFunc f -> do
-      argValues <- mapM evalExpr args
-      f argValues

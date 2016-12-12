@@ -1,5 +1,5 @@
 # find the nth prime number
-total = parse_int(input())
+input total
 to_check = 2
 count = 0
 while total > count {
@@ -18,38 +18,4 @@ while total > count {
 	}
 	to_check = to_check + 1
 }
-print(to_check - 1)
-
-print("hello there")
-stuff = "goodbye"
-print(stuff)
-
-func = (x, y,) => {
-	print(x + y)
-}
-func(6, 7,)
-
-stuff = () => {
-	print("h\\i \" h\i")
-}
-print(stuff())
-
-thing = (a, b,) => {
-	return a + b
-}
-
-print(thing(4, 5,))
-
-more_stuff = (x) => {
-	return x + 1
-}
-
-print(more_stuff(2 + 1))
-
-even_more_stuff = (a, b) => {
-	return a * b
-}
-
-print(even_more_stuff(1 + 1, 4 / 2))
-
-(x) => { print(x) } (7)
+output to_check - 1

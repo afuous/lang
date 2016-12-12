@@ -12,14 +12,12 @@ newtype Ident = Ident { unIdent :: String } deriving (Eq, Ord)
 data Instr = Assignment Ident Expr
            | IfElseBlock Expr Block (Maybe Block)
            | WhileBlock Expr Block
-           | Call Expr [Expr]
-           | Return Expr
+           | OutputInstr Expr
+           | InputInstr Ident
 
 data Expr = Constant Value
           | Variable Ident
           | Operator Op Expr Expr
-          | FuncDef [Ident] Block
-          | FuncCall Expr [Expr]
 
 type Vars = [Map.Map Ident Value]
 
@@ -28,9 +26,7 @@ type Action a = StateT Vars (EitherT Value IO) a
 data Value = LangInt Integer
            | LangStr String
            | LangBool Bool
-           | LangFunc [Ident] Block
            | LangNull -- :(
-           | BuiltInFunc ([Value] -> Action Value)
 
 data Op = Op
   { symbol :: String

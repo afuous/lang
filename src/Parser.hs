@@ -13,10 +13,10 @@ parseCode code = parse (linebreak *> block <* eof) "syntax error" code
 
 block :: Parser Block
 block = many $   try assignmentInstr
-             <|> returnInstr
              <|> try ifElseInstr
              <|> whileInstr
-             <|> callInstr
+             <|> reservedWord "output" *> (OutputInstr <$> expression) <* linebreak
+             <|> reservedWord "input" *> (InputInstr <$> identifier) <* linebreak
 
 whitespace :: Parser ()
 whitespace = void $ many $ oneOf "\n\t "
@@ -88,16 +88,6 @@ whileInstr = do
   linebreak
   return $ WhileBlock cond instrs
 
-callInstr :: Parser Instr
-callInstr = do
-  (func, args) <- funcCall
-  linebreak
-  return $ Call func args
-
-returnInstr :: Parser Instr
-returnInstr =
-  reservedWord "return" *> (Return <$> expression) <* linebreak
-
 operatorTable = map (map toParsec) (reverse operators)
   where
     toParsec op = Infix (reservedWord (symbol op) *> pure (Operator op))
@@ -109,41 +99,10 @@ operatorTable = map (map toParsec) (reverse operators)
 expression :: Parser Expr
 expression = buildExpressionParser operatorTable term
 
-lambda :: Parser Expr
-lambda = do
-  reservedWord "("
-  args <- optionalTrailing identifier (reservedWord ",")
-  reservedWord ")"
-  reservedWord "=>"
-  reservedWord "{"
-  linebreak
-  instrs <- block
-  reservedWord "}"
-  return $ FuncDef args instrs
-
-optionalTrailing :: Parser a -> Parser () -> Parser [a]
-optionalTrailing p delim = do
-  first <- many (try $ p <* delim)
-  last <- optionMaybe p
-  return $ case last of
-    Nothing -> first
-    Just x -> first ++ [x]
-
 parens :: Parser a -> Parser a
 parens p = reservedWord "(" *> p <* reservedWord ")"
 
-thing :: Parser Expr
-thing =   try lambda
-      <|> parens expression
-      <|> try (Constant <$> literal)
-      <|> Variable <$> identifier
-
-funcCall :: Parser (Expr, [Expr])
-funcCall = do
-  name <- thing
-  args <- parens $ optionalTrailing expression (reservedWord ",")
-  return (name, args)
-
 term :: Parser Expr
-term =   do { (func, args) <- try funcCall; return $ FuncCall func args }
-     <|> thing
+term =   parens expression
+     <|> try (Constant <$> literal)
+     <|> Variable <$> identifier

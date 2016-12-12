@@ -18,7 +18,7 @@ operators =
   , [ Op "*" langMul LAssoc
     , Op "/" langDiv LAssoc
     , Op "%" langMod LAssoc ]
-  , [ Op "^" langExp RAssoc ]
+  -- , [ Op "^" langExp RAssoc ]
   ]
 
 langAnd (LangBool a) (LangBool b) = LangBool (a && b)
