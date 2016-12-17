@@ -1,18 +1,19 @@
 module Parser (parseCode) where
 
-import           Control.Monad (void)
-import           Operators
-import           Text.Parsec
-import           Text.Parsec.Char
-import           Text.Parsec.Expr
-import           Text.Parsec.String (Parser)
-import           Types
+import Control.Monad (void)
+import Operators
+import Text.Parsec
+import Text.Parsec.Char
+import Text.Parsec.Expr
+import Text.Parsec.String (Parser)
+import Types
 
 parseCode :: String -> Either ParseError Block
 parseCode code = parse (linebreak *> block <* eof) "syntax error" code
 
 block :: Parser Block
-block = many $   try assignmentInstr
+block = many $   try letInstr
+             <|> try assignmentInstr
              <|> try ifElseInstr
              <|> whileInstr
              <|> reservedWord "output" *> (OutputInstr <$> expression) <* linebreak
@@ -50,6 +51,16 @@ comment = do
 
 linebreak :: Parser ()
 linebreak = void $ many $ void (oneOf "\n\t ") <|> comment
+
+letInstr :: Parser Instr
+letInstr = do
+  reservedWord "let"
+  ident <- identifier
+  mExpr <- optionMaybe $ try $ do
+    reservedWord "="
+    expression
+  linebreak
+  return $ LetInstr ident mExpr
 
 assignmentInstr :: Parser Instr
 assignmentInstr = do

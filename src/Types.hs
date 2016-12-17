@@ -1,7 +1,7 @@
 module Types where
 
-import           Control.Monad.Trans.Either
-import           Control.Monad.State
+import Control.Monad.Trans.Either
+import Control.Monad.State
 import qualified Data.Map as Map
 
 
@@ -9,7 +9,8 @@ type Block = [Instr]
 
 newtype Ident = Ident { unIdent :: String } deriving (Eq, Ord)
 
-data Instr = Assignment Ident Expr
+data Instr = LetInstr Ident (Maybe Expr)
+           | Assignment Ident Expr
            | IfElseBlock Expr Block (Maybe Block)
            | WhileBlock Expr Block
            | OutputInstr Expr

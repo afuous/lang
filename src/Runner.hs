@@ -1,10 +1,11 @@
 module Runner (run, runBlock) where
-import           Control.Monad
-import           Control.Monad.State
-import           Control.Monad.Trans.Either
+
+import Control.Monad
+import Control.Monad.State
+import Control.Monad.Trans.Either
 import qualified Data.Map as Map
-import           Operators
-import           Types
+import Operators
+import Types
 
 run :: Action () -> IO ()
 run m = void $ runEitherT (evalStateT m [])

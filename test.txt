@@ -1,17 +1,18 @@
 # find the nth prime number
+let total
 input total
-to_check = 2
-count = 0
+let to_check = 2
+let count = 0
 while total > count {
-	n = 2
-	cont = True
-	while cont {
+	let n = 2
+	let cont = 1
+	while cont == 1 {
 		if to_check == n {
-			cont = False
+			cont = 0
 			count = count + 1
 		} else {
 			if to_check % n == 0 {
-				cont = False
+				cont = 0
 			}
 		}
 		n = n + 1

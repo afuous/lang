@@ -1,7 +1,7 @@
-module Operators where
+module Operators (operators) where
 
-import           Types
-import           Text.Parsec
+import Types
+import Text.Parsec
 
 
 operators =
