@@ -30,9 +30,9 @@ data Value = LangInt Integer
            | LangNull -- :(
 
 data Op = Op
-  { symbol :: String
-  , call :: Value -> Value -> Value
-  , assoc :: Assoc
+  { opSymbol :: String
+  , opName :: String
+  , opAssoc :: Assoc
   }
 
 data Assoc = RAssoc

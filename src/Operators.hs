@@ -1,45 +1,116 @@
-module Operators (operators) where
+{-# LANGUAGE QuasiQuotes #-}
 
+module Operators
+  ( operators
+  , cOperators
+  ) where
+
+import Data.String.QQ
 import Types
 import Text.Parsec
 
 
 operators =
-  [ [ Op "&&" langAnd LAssoc
-    , Op "||" langOr LAssoc ]
-  , [ Op "==" langEq NoAssoc
-    , Op "!=" langNotEq NoAssoc
-    , Op "<" langLt NoAssoc
-    , Op ">" langGt NoAssoc
-    , Op "<=" langLtEq NoAssoc
-    , Op ">=" langGtEq NoAssoc ]
-  , [ Op "+" langAdd LAssoc
-    , Op "-" langSub LAssoc ]
-  , [ Op "*" langMul LAssoc
-    , Op "/" langDiv LAssoc
-    , Op "%" langMod LAssoc ]
-  -- , [ Op "^" langExp RAssoc ]
+  [ [ Op "&&" "and" LAssoc
+    , Op "||" "or" LAssoc
+    ]
+  , [ Op "==" "equals" NoAssoc
+    , Op "!=" "notequals" NoAssoc
+    , Op "<" "lessthan" NoAssoc
+    , Op ">" "greaterthan" NoAssoc
+    , Op "<=" "lessthanequals" NoAssoc
+    , Op ">=" "greaterthanequals" NoAssoc
+    ]
+  , [ Op "+" "add" LAssoc
+    , Op "-" "subtract" LAssoc
+    ]
+  , [ Op "*" "multiply" LAssoc
+    , Op "/" "divide" LAssoc
+    , Op "%" "modulo" LAssoc ]
+  , [ Op "^" "exponent" RAssoc
+    ]
   ]
 
-langAnd (LangBool a) (LangBool b) = LangBool (a && b)
-langOr (LangBool a) (LangBool b) = LangBool (a || b)
-langEq (LangBool a) (LangBool b) = LangBool (a == b)
-langEq (LangInt a) (LangInt b) = LangBool (a == b)
-langEq (LangStr a) (LangStr b) = LangBool (a == b)
-langEq LangNull LangNull = LangBool True
-langEq _ _ = LangBool False
-langNotEq (LangBool a) (LangBool b) = LangBool (a /= b)
-langNotEq (LangInt a) (LangInt b) = LangBool (a /= b)
-langNotEq (LangStr a) (LangStr b) = LangBool (a /= b)
-langNotEq LangNull LangNull = LangBool False
-langNotEq _ _ = LangBool True
-langLt (LangInt a) (LangInt b) = LangBool (a < b)
-langGt (LangInt a) (LangInt b) = LangBool (a > b)
-langLtEq (LangInt a) (LangInt b) = LangBool (a <= b)
-langGtEq (LangInt a) (LangInt b) = LangBool (a >= b)
-langAdd (LangInt a) (LangInt b) = LangInt (a + b)
-langSub (LangInt a) (LangInt b) = LangInt (a - b)
-langMul (LangInt a) (LangInt b) = LangInt (a * b)
-langDiv (LangInt a) (LangInt b) = LangInt (a `div` b)
-langMod (LangInt a) (LangInt b) = LangInt (a `mod` b)
-langExp (LangInt a) (LangInt b) = LangInt (a ^ b)
+cOperators :: String
+cOperators = [s|
+
+lang_value operator_and(lang_value a, lang_value b) {
+  require(a.type == LANG_BOOL && b.type == LANG_BOOL);
+  return make_lang_bool(a.value.bool_value && b.value.bool_value);
+}
+
+lang_value operator_or(lang_value a, lang_value b) {
+  require(a.type == LANG_BOOL && b.type == LANG_BOOL);
+  return make_lang_bool(a.value.bool_value || b.value.bool_value);
+}
+
+lang_value operator_equals(lang_value a, lang_value b) {
+  require(a.type == b.type);
+  switch (a.type) {
+    case LANG_INT:
+      return make_lang_bool(a.value.int_value == b.value.int_value);
+    case LANG_BOOL:
+      return make_lang_bool(a.value.bool_value == b.value.bool_value);
+    default:
+      require(0);
+  }
+}
+
+lang_value operator_notequals(lang_value a, lang_value b) {
+  require(a.type == b.type);
+  switch (a.type) {
+    case LANG_INT:
+      return make_lang_bool(a.value.int_value != b.value.int_value);
+    case LANG_BOOL:
+      return make_lang_bool(a.value.bool_value != b.value.bool_value);
+    default:
+      require(0);
+  }
+}
+
+lang_value operator_lessthan(lang_value a, lang_value b) {
+  require(a.type == LANG_INT && b.type == LANG_INT);
+  return make_lang_bool(a.value.int_value < b.value.int_value);
+}
+
+lang_value operator_greaterthan(lang_value a, lang_value b) {
+  require(a.type == LANG_INT && b.type == LANG_INT);
+  return make_lang_bool(a.value.int_value > b.value.int_value);
+}
+
+lang_value operator_lessthanequals(lang_value a, lang_value b) {
+  require(a.type == LANG_INT && b.type == LANG_INT);
+  return make_lang_bool(a.value.int_value <= b.value.int_value);
+}
+
+lang_value operator_greaterthanequals(lang_value a, lang_value b) {
+  require(a.type == LANG_INT && b.type == LANG_INT);
+  return make_lang_bool(a.value.int_value >= b.value.int_value);
+}
+
+lang_value operator_add(lang_value a, lang_value b) {
+  require(a.type == LANG_INT && b.type == LANG_INT);
+  return make_lang_int(a.value.int_value + b.value.int_value);
+}
+
+lang_value operator_subtract(lang_value a, lang_value b) {
+  require(a.type == LANG_INT && b.type == LANG_INT);
+  return make_lang_int(a.value.int_value - b.value.int_value);
+}
+
+lang_value operator_multiply(lang_value a, lang_value b) {
+  require(a.type == LANG_INT && b.type == LANG_INT);
+  return make_lang_int(a.value.int_value * b.value.int_value);
+}
+
+lang_value operator_divide(lang_value a, lang_value b) {
+  require(a.type == LANG_INT && b.type == LANG_INT);
+  return make_lang_int(a.value.int_value / b.value.int_value);
+}
+
+lang_value operator_modulo(lang_value a, lang_value b) {
+  require(a.type == LANG_INT && b.type == LANG_INT);
+  return make_lang_int(a.value.int_value % b.value.int_value);
+}
+
+|]

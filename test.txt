@@ -5,14 +5,14 @@ let to_check = 2
 let count = 0
 while total > count {
 	let n = 2
-	let cont = 1
-	while cont == 1 {
+	let cont = True
+	while cont {
 		if to_check == n {
-			cont = 0
+			cont = False
 			count = count + 1
 		} else {
 			if to_check % n == 0 {
-				cont = 0
+				cont = False
 			}
 		}
 		n = n + 1

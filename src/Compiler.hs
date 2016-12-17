@@ -3,27 +3,47 @@
 module Compiler (compile) where
 
 import Data.String.QQ
+import Operators (cOperators)
 import Types
 
-beginning :: String
-beginning = [s|
+lib :: String
+lib = [s|
+
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef enum { LANG_INT } lang_type;
+typedef enum {
+  LANG_INT,
+  LANG_BOOL,
+} lang_type;
 
 typedef struct lang_value {
   lang_type type;
   union {
     int int_value;
+    int bool_value;
   } value;
 } lang_value;
 
-lang_value make_lang_value(int n) {
+lang_value make_lang_int(int n) {
   lang_value val;
   val.type = LANG_INT;
   val.value.int_value = n;
   return val;
+}
+
+lang_value make_lang_bool(int b) {
+  lang_value val;
+  val.type = LANG_BOOL;
+  val.value.bool_value = b;
+  return val;
+}
+
+void require(int cond) {
+  if (!cond) {
+    fprintf(stderr, "type error\n");
+    exit(1);
+  }
 }
 
 int get_input(void) {
@@ -37,6 +57,10 @@ int get_input(void) {
   return result;
 }
 
+|]
+
+beginning :: String
+beginning = [s|
 int main(void) {
 |]
 
@@ -47,7 +71,7 @@ return 0;
 |]
 
 compile :: Block -> String
-compile block = beginning ++ compileBlock block ++ ending
+compile block = lib ++ cOperators ++ beginning ++ compileBlock block ++ ending
 
 compileBlock :: Block -> String
 compileBlock = foldr (++) "" . map ((++ "\n") . compileInstr)
@@ -69,10 +93,12 @@ compileInstr (WhileBlock cond block) =
 compileInstr (OutputInstr expr) =
   "printf(\"%d\\n\", " ++ compileExpr expr ++ ".value.int_value);"
 compileInstr (InputInstr ident) =
-  unIdent ident ++ " = make_lang_value(get_input());"
+  unIdent ident ++ " = make_lang_int(get_input());"
 
 compileExpr :: Expr -> String
-compileExpr (Constant (LangInt n)) = "make_lang_value(" ++ show n ++ ")"
+compileExpr (Constant (LangInt n)) = "make_lang_int(" ++ show n ++ ")"
+compileExpr (Constant (LangBool b)) =
+  "make_lang_bool(" ++ (if b then "1" else "0") ++ ")"
 compileExpr (Variable ident) = unIdent ident
 compileExpr (Operator op expr1 expr2) =
-  "make_lang_value(" ++ compileExpr expr1 ++ ".value.int_value " ++ symbol op ++ " " ++ compileExpr expr2 ++ ".value.int_value)"
+  "operator_" ++ opName op ++ "(" ++ compileExpr expr1 ++ ", " ++ compileExpr expr2 ++ ")"

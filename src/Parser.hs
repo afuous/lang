@@ -101,8 +101,8 @@ whileInstr = do
 
 operatorTable = map (map toParsec) (reverse operators)
   where
-    toParsec op = Infix (reservedWord (symbol op) *> pure (Operator op))
-                        (parsecAssoc (assoc op))
+    toParsec op = Infix (reservedWord (opSymbol op) *> pure (Operator op))
+                        (parsecAssoc (opAssoc op))
     parsecAssoc LAssoc = AssocLeft
     parsecAssoc RAssoc = AssocRight
     parsecAssoc NoAssoc = AssocNone
