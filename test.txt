@@ -1,4 +1,6 @@
 # find the nth prime number
+let str = "hello, enter a number"
+output str
 let total
 input total
 let to_check = 2
@@ -19,4 +21,5 @@ while total > count {
 	}
 	to_check = to_check + 1
 }
+output "here is the nth prime"
 output to_check - 1

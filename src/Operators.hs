@@ -51,6 +51,8 @@ lang_value operator_equals(lang_value a, lang_value b) {
       return make_lang_bool(a.value.int_value == b.value.int_value);
     case LANG_BOOL:
       return make_lang_bool(a.value.bool_value == b.value.bool_value);
+    case LANG_STR:
+      return make_lang_bool(strcmp(a.value.str_value, b.value.str_value) == 0);
     default:
       require(0);
   }
@@ -63,29 +65,59 @@ lang_value operator_notequals(lang_value a, lang_value b) {
       return make_lang_bool(a.value.int_value != b.value.int_value);
     case LANG_BOOL:
       return make_lang_bool(a.value.bool_value != b.value.bool_value);
+    case LANG_STR:
+      return make_lang_bool(strcmp(a.value.str_value, b.value.str_value) != 0);
     default:
       require(0);
   }
 }
 
 lang_value operator_lessthan(lang_value a, lang_value b) {
-  require(a.type == LANG_INT && b.type == LANG_INT);
-  return make_lang_bool(a.value.int_value < b.value.int_value);
+  require(a.type == b.type);
+  switch (a.type) {
+    case LANG_INT:
+      return make_lang_bool(a.value.int_value < b.value.int_value);
+    case LANG_STR:
+      return make_lang_bool(strcmp(a.value.str_value, b.value.str_value) < 0);
+    default:
+      require(0);
+  }
 }
 
 lang_value operator_greaterthan(lang_value a, lang_value b) {
-  require(a.type == LANG_INT && b.type == LANG_INT);
-  return make_lang_bool(a.value.int_value > b.value.int_value);
+  require(a.type == b.type);
+  switch (a.type) {
+    case LANG_INT:
+      return make_lang_bool(a.value.int_value > b.value.int_value);
+    case LANG_STR:
+      return make_lang_bool(strcmp(a.value.str_value, b.value.str_value) > 0);
+    default:
+      require(0);
+  }
 }
 
 lang_value operator_lessthanequals(lang_value a, lang_value b) {
-  require(a.type == LANG_INT && b.type == LANG_INT);
-  return make_lang_bool(a.value.int_value <= b.value.int_value);
+  require(a.type == b.type);
+  switch (a.type) {
+    case LANG_INT:
+      return make_lang_bool(a.value.int_value <= b.value.int_value);
+    case LANG_STR:
+      return make_lang_bool(strcmp(a.value.str_value, b.value.str_value) <= 0);
+    default:
+      require(0);
+  }
 }
 
 lang_value operator_greaterthanequals(lang_value a, lang_value b) {
-  require(a.type == LANG_INT && b.type == LANG_INT);
-  return make_lang_bool(a.value.int_value >= b.value.int_value);
+  require(a.type == b.type);
+  switch (a.type) {
+    case LANG_INT:
+      return make_lang_bool(a.value.int_value >= b.value.int_value);
+    case LANG_STR:
+      return make_lang_bool(strcmp(a.value.str_value, b.value.str_value) >= 0);
+    default:
+      require(0);
+  }
 }
 
 lang_value operator_add(lang_value a, lang_value b) {

@@ -2,6 +2,7 @@
 
 module Compiler (compile) where
 
+import Data.Char (chr)
 import Data.String.QQ
 import Operators (cOperators)
 import Types
@@ -15,6 +16,7 @@ lib = [s|
 typedef enum {
   LANG_INT,
   LANG_BOOL,
+  LANG_STR,
 } lang_type;
 
 typedef struct lang_value {
@@ -99,6 +101,20 @@ compileExpr :: Expr -> String
 compileExpr (Constant (LangInt n)) = "make_lang_int(" ++ show n ++ ")"
 compileExpr (Constant (LangBool b)) =
   "make_lang_bool(" ++ (if b then "1" else "0") ++ ")"
+compileExpr (Constant (LangStr s)) =
+  let replacements = Map.fromList
+    [ ('\'', '\'')
+    , ('"', '"')
+    , ('?', '?')
+    , ('\\', '\\'),
+    , (chr 7, 'a')
+    , (chr 8, 'b')
+    , (chr 9, 't')
+    , (chr 10, 'n')
+    , (chr 11, 'v')
+    , (chr 12, 'f')
+    , (chr 13, 'r')
+    ] in
 compileExpr (Variable ident) = unIdent ident
 compileExpr (Operator op expr1 expr2) =
   "operator_" ++ opName op ++ "(" ++ compileExpr expr1 ++ ", " ++ compileExpr expr2 ++ ")"
